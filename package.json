@@ -1,0 +1,22 @@
+{
+  "name": "agentmesh",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "pnpm --filter @agentmesh/backend dev",
+    "dev:frontend": "pnpm --filter @agentmesh/frontend dev",
+    "dev:all": "pnpm dev:backend & sleep 3 && pnpm dev:frontend",
+    "build": "pnpm --filter @agentmesh/shared build && pnpm --filter @agentmesh/backend build && pnpm --filter @agentmesh/frontend build",
+    "deploy:contracts": "cd contracts && forge script script/Deploy.s.sol --rpc-url https://evmrpc-testnet.0g.ai --broadcast --private-key $PRIVATE_KEY --evm-version cancun",
+    "seed-demo": "npx tsx scripts/seed-demo.ts",
+    "generate-keys": "bash scripts/generate-keys.sh",
+    "start-mesh": "bash scripts/start-mesh.sh",
+    "stop-mesh": "bash scripts/stop-mesh.sh",
+    "test:contracts": "cd contracts && forge test -vvv"
+  },
+  "devDependencies": {
+    "wait-on": "^7.2.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

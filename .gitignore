@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+dist/
+
+# Environment
+.env
+.env.local
+.env*.local
+packages/frontend/.env.local
+
+# Keys — never commit
+keys/
+
+# AXL binary — not ours to distribute
+axl/node
+
+# Build artifacts
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+packages/frontend/.next/
+packages/frontend/.vercel/
+.vercel
+.next/
+out/
+
+# Pipeline artifacts — expose the build process
+.build-state.json
+.forge-state.json
+.design-forge-state.json
+.debug-state.json
+.wire-state.json
+.verify-state.json
+.polish-state.json
+.stress-test-state.json
+.demo-state.json
+BUILD-REPORT.md
+DEBUG-REPORT.md
+CRITIQUE-REPORT.md
+POLISH-REPORT.md
+STRESS-TEST-REPORT.md
+STRESS-TEST-PLAN.md
+WIRE-REPORT.md
+VERIFY-REPORT.md
+DAILY-COMMIT-PLAN.md
+MASTERPLAN.md
+PULSE.md
+pipeline-log.md
+SUBMISSION-REQUIREMENTS.md
+concerns.md
+
+# Hackathon pipeline directories
+warroom/
+research/
+
+# Design system artifacts
+brand.json
+design-variations/
+debug-results/
+screenshots/
+
+# Scripts that expose the commit strategy
+scripts/COMMIT-GUIDE.md
+scripts/make-april26-commit.py
+
+# TypeScript build info
+*.tsbuildinfo
+
+# macOS
+.DS_Store
+
+# Foundry
+.gas-snapshot
+
+# Misc
+axl-repo/
