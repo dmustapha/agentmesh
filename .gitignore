@@ -74,3 +74,12 @@ scripts/make-april26-commit.py
 
 # Misc
 axl-repo/
+
+# AXL Go source — Gensyn's binary, not ours to maintain
+axl/*
+!axl/node-config.json
+
+# Root-level pipeline working docs (docs/spec/ is the committed version)
+/ARCHITECTURE.md
+/PLAN.md
+/PRD.md
