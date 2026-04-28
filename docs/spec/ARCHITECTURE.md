@@ -17,9 +17,9 @@ I went with AXL primarily because Gensyn is an explicit prize sponsor and using 
 rather than wrapping a generic P2P library seemed like it would make a much stronger case for the
 integration, since you can demonstrate that AXL is genuinely load-bearing in a way that's hard to
 argue with: removing it means the agents have no way to communicate. Beyond the strategic angle,
-The AXL HTTP API looks straightforward from the documentation: POST /send with the destination peer ID
-in a header, GET /recv to poll for inbound messages, and GET /topology to see the mesh state. Four
-binary instances on ports 9002-9005, each with its own ed25519 keypair, form a real Yggdrasil
+The AXL HTTP API looks straightforward from the documentation: POST /send with the destination peer
+ID in a header, GET /recv to poll for inbound messages, and GET /topology to see the mesh state.
+Four binary instances on ports 9002-9005, each with its own ed25519 keypair, form a real Yggdrasil
 overlay mesh without needing a DHT bootstrap server since all instances are on localhost and the
 topology is small enough that static peer wiring works fine.
 
@@ -180,13 +180,13 @@ larger model might have internalized more deeply.
 
 The agentmesh.eth ENS registration is a manual one-time step at sepolia.app.ens.domains and can't
 be automated from within the project, so it has to be done before any of the ENS-dependent code
-can be tested, and the registration tx hash is included in the proof page as evidence that it
+can be tested, and the registration tx hash will be included in the proof page as evidence that it
 happened.
 
-Four AXL instances running on different ports on the same machine should form a real Yggdrasil mesh,
-but cross-node routing needs to be verified before any application code is written. If the overlay
-routing works, the topology endpoint should show each peer's Yggdrasil IPv6 address as evidence
-of real overlay routing rather than localhost loopback.
+Four AXL instances running on different ports on the same machine form a real Yggdrasil mesh, and
+cross-node routing was tested and confirmed before any application code was written: messages route
+through the Yggdrasil overlay rather than localhost loopback, and the topology endpoint shows each
+peer's Yggdrasil IPv6 address as evidence.
 
 Testnet infrastructure can be unreliable, so the audit pipeline degrades gracefully at every
 integration point: if the storage upload fails the report is cached locally, and if the attestation

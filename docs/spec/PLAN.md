@@ -7,8 +7,8 @@ what "done" actually means.
 
 ## Status Key
 
-- [ ] Complete: shipped and working
-- [ ] Partial: started but not finished
+- [x] Complete: shipped and working
+- [~] Partial: started but not finished
 - [ ] Not started
 
 ---
@@ -18,12 +18,13 @@ what "done" actually means.
 These had to be proven before anything else, because if AXL doesn't work or 0G Compute is broken
 the entire architecture falls apart.
 
-- [ ] AXL binary runs on local machine (arm64, Mach-O confirmed)
+- [x] AXL binary runs on local machine (arm64, Mach-O confirmed)
   - Acceptance: `./axl/node --port 9002 --key-file keys/agent0.pem` starts without error
   - Acceptance: GET /topology returns JSON with our_public_key field
 
-- [ ] Two AXL instances send messages to each other (cross-process)
+- [x] Two AXL instances send messages to each other (cross-process)
   - Acceptance: POST /send from port 9002 to peer ID of 9003, GET /recv on 9003 returns the message
+  - This was the critical unknown; confirmed cross-node routing works via Yggdrasil overlay
 
 - [ ] 0G Compute inference call works
   - Acceptance: @0glabs/0g-serving-broker initialized, one chat completions request returns a
@@ -47,7 +48,7 @@ the entire architecture falls apart.
   - Acceptance: attest() tx succeeds, getAttestation returns the stored data
   - Acceptance: storageRootHash field stores 0G Storage root from a test upload
 
-- [ ] ENS registration: agentmesh.eth + 4 subnames on Sepolia
+- [x] ENS registration: agentmesh.eth + 4 subnames on Sepolia
   - Acceptance: all 4 subnames resolvable via ethers.js
   - Acceptance: ENSIP-25 text records set and readable for each agent
   - Acceptance: ENSIP-26 verification records set (challenge + signature)
