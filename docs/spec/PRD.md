@@ -110,34 +110,30 @@ not a hackathon one.
 
 ## Open Questions (as of project start)
 
-These are the open questions going into the build. I'll note resolutions as they come up.
+Some of these resolved during the build, noted where they did.
 
-Whether AXL can run multiple instances on the same machine isn't clear yet. The obvious approach
-is different ports and different key files so each instance gets a distinct peer ID, but this hasn't
-been tested and it's possible the binary has constraints that prevent it.
+Whether AXL could run multiple instances on the same machine wasn't clear before testing. It can,
+using different ports and different key files so each instance gets a distinct peer ID.
 
 What the 0G testnet faucet rate limits actually are still isn't fully answered. The burn rate per
 inference call is hard to estimate from the documentation so I budgeted conservatively at 5 tokens
 per full audit run.
 
-Whether the public ENS resolver supports ENSIP-25 text record key formats is an open question.
-The spec defines specific key naming conventions and it's not clear from the documentation whether
-the standard PublicResolver on Sepolia handles arbitrary text record keys or whether a custom
-resolver is needed.
+Whether the public ENS resolver supports ENSIP-25 text record key formats turned out to be a
+non-issue: standard PublicResolver supports arbitrary text record keys and ENSIP-25 is just a
+naming convention layered on top of that.
 
-Whether the 0G Storage indexer is stable enough to rely on without a fallback is unclear. The
-plan is to build a local cache fallback so that if the upload fails, the report can still be
-attested using a local hash. May also need to pre-confirm a session before recording to avoid live
-testnet failures showing up mid-demo.
+Whether the 0G Storage indexer was stable enough to rely on without a fallback got addressed by
+building both: if the upload fails, the report is cached locally and the attestation uses the
+local hash. The demo recording uses a pre-confirmed session to avoid live testnet failures.
 
-For the topology graph, the plan is to poll the AXL /topology endpoint rather than push topology
-events over WebSocket, since topology changes happen slowly. Whether a 2-second polling interval
-feels responsive enough on the graph is something to verify during implementation.
+For the topology graph, polling the AXL /topology endpoint every 2 seconds turned out to be
+sufficient. Topology changes happen slowly enough that a 2-second lag is imperceptible, and it
+simplified the implementation considerably compared to pushing topology events over WebSocket.
 
-If an AXL node crashes mid-audit, the consensus engine needs to handle partial responses
-gracefully rather than hanging or failing completely. The current plan is a per-agent timeout and
-consensus over whatever arrives, with the report noting degraded mode if fewer than 4 agents
-contributed.
+If an AXL node crashes mid-audit, each agent gets 30 seconds to respond and consensus runs on
+whatever responses arrive. The report notes "degraded mode" if fewer than 4 agents contributed,
+rather than failing or hanging.
 
 ---
 

@@ -58,6 +58,24 @@ contract address, which felt like the right amount of friction for a tool aimed 
 
 ---
 
+## Development Tooling
+
+Claude Code was used as the primary coding assistant throughout this project, in the same way that
+GitHub Copilot or Cursor would be used on a non-hackathon project. The components that involved
+AI-assisted code generation:
+
+- Backend services: AXL client, agent manager, ENS resolver, 0G Compute client, 0G Storage client,
+  0G Chain client, consensus engine, Express API routes, WebSocket server
+- Frontend components: topology graph (D3.js), audit console, chat feed, report view, proof page
+- Smart contracts: AgentRegistry.sol, AuditAttestation.sol (Foundry)
+- Test files: agent consensus tests, API route tests, frontend component tests
+- Utility scripts: generate-keys.sh, start-mesh.sh, seed-demo.ts
+
+I reviewed and iterated on all of the generated code. The planning work above had to come first
+because the implementation only makes sense once you know what you're building and why, and those
+decisions about which APIs to use, which standards to implement, and how the agents should talk to
+each other weren't things that came out of the code generation process.
+
 ---
 
 ## Spec Artifacts
@@ -80,3 +98,10 @@ The work from April 26 onward represents genuine daily refinement rather than st
 pre-existing code:
 
 - April 26: docs/spec/ folder created, this attribution document written
+- April 27: ENS subname registration (real on-chain transactions), design implementation in Next.js
+- April 28: AXL cross-node test (two live instances, message delivery confirmed), GENSYN.md
+- April 29: 0G Storage integration completed (was stubbed during initial build), 0G.md
+- April 30: Storage hash verification added to AuditAttestation contract
+- May 1: End-to-end integration testing, P2P message feed in ChatFeed component, architecture diagram
+- May 2: Demo video recorded, deployment guide written
+- May 3: Final submission

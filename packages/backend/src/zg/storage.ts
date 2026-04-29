@@ -1,0 +1,62 @@
+// File: packages/backend/src/zg/storage.ts
+
+import { ethers } from 'ethers';
+import { Indexer, ZgFile } from '@0gfoundation/0g-ts-sdk';
+import { ZG_STORAGE_INDEXER, ZG_STORAGE_RPC } from '@agentmesh/shared';
+import type { AuditReport } from '@agentmesh/shared';
+import { writeFileSync, mkdirSync, unlinkSync } from 'fs';
+import { join } from 'path';
+import { tmpdir } from 'os';
+
+export class ZGStorageClient {
+  private signer: ethers.Wallet;
+  private indexer: Indexer;
+
+  constructor(privateKey: string) {
+    const provider = new ethers.JsonRpcProvider(ZG_STORAGE_RPC);
+    this.signer = new ethers.Wallet(privateKey, provider);
+    this.indexer = new Indexer(ZG_STORAGE_INDEXER);
+  }
+
+  async uploadReport(report: AuditReport): Promise<{ rootHash: string; txHash: string }> {
+    // Write report to temp file
+    const tempDir = join(tmpdir(), 'agentmesh');
+    mkdirSync(tempDir, { recursive: true });
+    const tempFile = join(tempDir, `report-${report.id}.json`);
+    writeFileSync(tempFile, JSON.stringify(report, null, 2));
+
+    try {
+      const file = await ZgFile.fromFilePath(tempFile);
+      const [txResponse, error] = await this.indexer.upload(
+        file,
+        ZG_STORAGE_RPC,
+        this.signer,
+      );
+
+      if (error) {
+        throw new Error(`0G Storage upload failed: ${error.message}`);
+      }
+
+      // Handle both single and batch upload response shapes
+      const rootHash = 'rootHash' in txResponse ? txResponse.rootHash : (txResponse as any).root ?? '';
+      const txHash = 'txHash' in txResponse ? txResponse.txHash : (txResponse as any).transactionHash ?? '';
+
+      console.log(`[0G Storage] Uploaded report ${report.id}: rootHash=${rootHash}`);
+
+      return { rootHash, txHash };
+    } finally {
+      try { unlinkSync(tempFile); } catch { /* ignore cleanup errors */ }
+    }
+  }
+
+  async downloadReport(rootHash: string): Promise<AuditReport> {
+    const [blob, error] = await this.indexer.downloadToBlob(rootHash, { proof: true });
+
+    if (error) {
+      throw new Error(`0G Storage download failed: ${error.message}`);
+    }
+
+    const text = await blob.text();
+    return JSON.parse(text) as AuditReport;
+  }
+}

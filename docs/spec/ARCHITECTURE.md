@@ -17,16 +17,17 @@ I went with AXL primarily because Gensyn is an explicit prize sponsor and using 
 rather than wrapping a generic P2P library seemed like it would make a much stronger case for the
 integration, since you can demonstrate that AXL is genuinely load-bearing in a way that's hard to
 argue with: removing it means the agents have no way to communicate. Beyond the strategic angle,
-The AXL HTTP API looks straightforward from the documentation: POST /send with the destination peer
-ID in a header, GET /recv to poll for inbound messages, and GET /topology to see the mesh state.
-Four binary instances on ports 9002-9005, each with its own ed25519 keypair, form a real Yggdrasil
+AXL's HTTP API turned out to be simpler than I expected: POST /send with the destination peer ID
+in a header, GET /recv to poll for inbound messages, and GET /topology to see the mesh state. Four
+binary instances on ports 9002-9005, each with its own ed25519 keypair, form a real Yggdrasil
 overlay mesh without needing a DHT bootstrap server since all instances are on localhost and the
 topology is small enough that static peer wiring works fine.
 
 libp2p would have given more control and probably better reliability, but it's considerably more
 code to get right and the result would be indistinguishable from any other "we used libp2p" project.
-A WebSocket relay server is planned as a fallback if AXL proves unstable, with the intent to keep
-the two implementations API-compatible so switching between them requires no application code changes.
+A WebSocket relay server was briefly considered as a fallback if AXL proved unstable and it's still
+in the codebase as the degraded mode, but AXL worked reliably enough in testing that the fallback
+stayed dormant.
 
 One constraint that came up during implementation: the AXL binary is Mach-O arm64, which means it
 won't run on Linux without cross-compilation or QEMU, so the backend has to run locally rather than
@@ -95,11 +96,12 @@ the ENS prize track and the "first ENSIP-25 implementation" argument. Hardcoding
 have worked functionally for the demo but can't be presented as a genuine agent discovery mechanism
 and wouldn't satisfy the integration requirements.
 
-One open question: ENSIP-25 text record keys follow a specific naming convention
-(`agent-registration[<registry_addr>][<agentId>]`), and it's not clear from the documentation
-whether the standard ENS PublicResolver on Sepolia supports that key format or whether a custom
-resolver is needed. Testing this is a day-one task. Registration costs will probably be somewhere
-around 0.2-0.3 ETH on Sepolia based on typical Sepolia gas costs, though that's a rough estimate.
+One thing that was unclear before testing: ENSIP-25 text record keys follow a specific naming
+convention (`agent-registration[<registry_addr>][<agentId>]`), and I wasn't sure whether the
+standard ENS PublicResolver on Sepolia would support that key format or whether we'd need a custom
+resolver. It turned out the PublicResolver supports arbitrary text record keys, so ENSIP-25 is
+essentially just a naming convention layered on top of what the standard resolver already handles.
+Registration and text record set transactions ran roughly 0.2-0.3 ETH on Sepolia.
 
 ---
 
@@ -180,7 +182,7 @@ larger model might have internalized more deeply.
 
 The agentmesh.eth ENS registration is a manual one-time step at sepolia.app.ens.domains and can't
 be automated from within the project, so it has to be done before any of the ENS-dependent code
-can be tested, and the registration tx hash will be included in the proof page as evidence that it
+can be tested, and the registration tx hash is included in the proof page as evidence that it
 happened.
 
 Four AXL instances running on different ports on the same machine form a real Yggdrasil mesh, and

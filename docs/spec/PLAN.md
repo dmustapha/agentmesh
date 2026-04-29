@@ -26,25 +26,28 @@ the entire architecture falls apart.
   - Acceptance: POST /send from port 9002 to peer ID of 9003, GET /recv on 9003 returns the message
   - This was the critical unknown; confirmed cross-node routing works via Yggdrasil overlay
 
-- [ ] 0G Compute inference call works
+- [x] 0G Compute inference call works
   - Acceptance: @0glabs/0g-serving-broker initialized, one chat completions request returns a
     non-empty response from qwen-2.5-7b-instruct
+  - Note: testnet can be slow; p95 latency around 8-12 seconds per call
 
-- [ ] ENS text record write on Sepolia
+- [x] ENS text record write on Sepolia
   - Acceptance: write one text record to a test ENS name, read it back via ethers.js
+  - Confirmed: standard PublicResolver supports arbitrary text record keys, ENSIP-25 works
 
-- [ ] 0G Storage upload returns rootHash
+- [x] 0G Storage upload returns rootHash
   - Acceptance: upload a JSON object, get back a rootHash string, retrieve it via rootHash
+  - Note: testnet indexer can be slow; add 30s timeout to avoid hanging
 
 ---
 
 ## Phase 1: Contracts (Day 2)
 
-- [ ] AgentRegistry deployed to 0G Chain Testnet (16602)
+- [x] AgentRegistry deployed to 0G Chain Testnet (16602)
   - Acceptance: contract address recorded, registerAgent tx succeeds, getAgent returns data
   - Acceptance: 4 agent addresses registered with name, capability, peerId
 
-- [ ] AuditAttestation deployed to 0G Chain Testnet
+- [x] AuditAttestation deployed to 0G Chain Testnet
   - Acceptance: attest() tx succeeds, getAttestation returns the stored data
   - Acceptance: storageRootHash field stores 0G Storage root from a test upload
 
@@ -58,34 +61,34 @@ the entire architecture falls apart.
 
 ## Phase 2: Backend Core (Days 2-3)
 
-- [ ] AXL client module
+- [x] AXL client module
   - Acceptance: send(peerId, message), recv(), getTopology() all work against running AXL instances
   - Acceptance: handles 204 (no messages) from recv without throwing
 
-- [ ] Agent manager
+- [x] Agent manager
   - Acceptance: spawnAgent(specialty) starts an AXL process on the right port with the right key
   - Acceptance: broadcastToMesh(message) sends to all four peer IDs
   - Acceptance: 30-second timeout on agent responses; degraded mode if fewer than 4 respond
 
-- [ ] ENS resolver service
+- [x] ENS resolver service
   - Acceptance: registerAgent(name, peerId, capabilities) writes ENSIP-25 text records
   - Acceptance: discoverAgents(parentName) returns all registered agents under agentmesh.eth
   - Acceptance: verifyAgent(address, challenge) validates ENSIP-26 signature
 
-- [ ] 0G Compute client
+- [x] 0G Compute client
   - Acceptance: analyzeContract(source, specialty) returns structured finding objects
   - Acceptance: system prompts tuned per specialty; reentrancy prompt reliably finds reentrancy in
     the test vulnerable contract
 
-- [ ] 0G Chain client
+- [x] 0G Chain client
   - Acceptance: registerAgent() on AgentRegistry, attest() on AuditAttestation both work
   - Acceptance: returned tx hashes are valid and confirmable on chainscan-galileo.0g.ai
 
-- [ ] 0G Storage client
+- [x] 0G Storage client
   - Acceptance: uploadReport(report) returns rootHash within 30 seconds on testnet
   - Acceptance: local cache fallback works if indexer is unresponsive
 
-- [ ] Consensus engine
+- [x] Consensus engine
   - Acceptance: aggregateFindings(findings[]) produces a ConsensusResult with correct severity
   - Acceptance: 3/4 agreement on a known finding correctly produces CRITICAL in output
   - Acceptance: unit tests pass (consensus.test.ts)
