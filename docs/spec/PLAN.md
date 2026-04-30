@@ -97,29 +97,29 @@ the entire architecture falls apart.
 
 ## Phase 3: Backend API + Server (Day 4)
 
-- [ ] POST /api/audit (start an audit, distribute via AXL, stream results via WebSocket)
-- [ ] GET /api/agents (return all registered agents with ENS names and status)
-- [ ] GET /api/topology (aggregate topology from all 4 AXL /topology endpoints)
-- [ ] WebSocket /ws (events: agent:status, agent:message, audit:finding, audit:complete)
-- [ ] GET /api/agents/tools (query each agent's MCP tools via AXL /mcp proxy)
+- [x] POST /api/audit (start an audit, distribute via AXL, stream results via WebSocket)
+- [x] GET /api/agents (return all registered agents with ENS names and status)
+- [x] GET /api/topology (aggregate topology from all 4 AXL /topology endpoints)
+- [x] WebSocket /ws (events: agent:status, agent:message, audit:finding, audit:complete)
+- [x] GET /api/agents/tools (query each agent's MCP tools via AXL /mcp proxy)
 
 ---
 
 ## Phase 4: Frontend (Day 5)
 
-- [ ] Topology graph (D3.js force-directed)
+- [x] Topology graph (D3.js force-directed)
   - Acceptance: shows 4 nodes with ENS names, connection lines
   - Acceptance: polls /api/topology every 2s, nodes animate on status change
 
-- [ ] Audit form and chat feed
+- [x] Audit form and chat feed
   - Acceptance: accepts contract address or Solidity source
   - Acceptance: WebSocket chat feed shows inter-agent messages in real time as they arrive
 
-- [ ] Report view
+- [x] Report view
   - Acceptance: severity-sorted findings, evidence sections, agent voting breakdown
   - Acceptance: links to 0G Chain attestation tx and 0G Storage rootHash
 
-- [ ] Proof page (/proof)
+- [x] Proof page (/proof)
   - Acceptance: all 4 ENS registration links visible
   - Acceptance: ENSIP-26 verification proof per agent
   - Acceptance: contract addresses with block explorer links
