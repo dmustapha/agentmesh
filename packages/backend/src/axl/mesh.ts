@@ -27,10 +27,20 @@ export class AXLMesh {
   }
 
   async start(): Promise<MeshNode[]> {
-    // Strategy: first try to connect to already-running AXL nodes (started via start-mesh.sh).
-    // If nodes are already running, skip spawning. Otherwise, spawn them with correct config.
-    // If no binary or keys, fall back to simulated nodes.
+    // Priority order:
+    // 1. Attach to already-running nodes (start-mesh.sh, Docker, external) — no binary or key check needed.
+    // 2. Spawn nodes ourselves if binary + keys exist.
+    // 3. Simulated fallback.
 
+    const firstClient = new AXLClient(AXL_HOST, AXL_PORTS[0]);
+    const alreadyRunning = await firstClient.isAlive();
+
+    if (alreadyRunning) {
+      console.log('[Mesh] Detected running AXL nodes — attaching to existing mesh');
+      return this.attachToRunningNodes();
+    }
+
+    // Nodes not running — try to spawn them.
     if (!existsSync(this.axlBinaryPath)) {
       console.warn(`[Mesh] AXL binary not found at ${this.axlBinaryPath} — creating simulated mesh nodes`);
       return this.createSimulatedNodes();
@@ -42,15 +52,6 @@ export class AXLMesh {
         console.warn(`[Mesh] Key file not found: ${keyPath} — creating simulated mesh nodes`);
         return this.createSimulatedNodes();
       }
-    }
-
-    // Check if AXL nodes are already running (e.g., started by start-mesh.sh)
-    const firstClient = new AXLClient(AXL_HOST, AXL_PORTS[0]);
-    const alreadyRunning = await firstClient.isAlive();
-
-    if (alreadyRunning) {
-      console.log('[Mesh] Detected running AXL nodes — attaching to existing mesh');
-      return this.attachToRunningNodes();
     }
 
     // Spawn nodes with correct AXL config format (hub-spoke topology)

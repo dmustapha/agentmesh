@@ -24,10 +24,12 @@ gets an ed25519 keypair and that public key becomes its peer ID, so running four
 not sure about going into the build is whether cross-node messaging actually works between separate
 OS processes, and I'll need to confirm this early before writing any application code.
 
-One thing worth noting is that the AXL binary is Mach-O arm64, so it only runs on Apple Silicon
-without cross-compilation or QEMU. That means the backend can't be deployed on Linux cloud infra,
-so I scoped the demo to local execution and just show the Vercel-deployed frontend connecting to a
-local backend during recording.
+One thing worth noting is that AXL is a Go project, so it can be cross-compiled for any target. The
+`scripts/setup.sh` script handles this automatically — it detects the host platform and architecture,
+runs `GOOS/GOARCH/CGO_ENABLED=0 go build` to produce the right binary, and writes it as
+`node-{platform}-{arch}` in the `axl/` directory. `mesh.ts` resolves the correct binary at runtime.
+The backend still runs locally during the demo because AXL mesh state and keypairs aren't suited for
+stateless cloud infra, but any developer on macOS, Linux, or Windows (WSL2) can run the full stack.
 
 ---
 

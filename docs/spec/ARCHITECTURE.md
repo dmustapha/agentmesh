@@ -29,11 +29,12 @@ A WebSocket relay server was briefly considered as a fallback if AXL proved unst
 in the codebase as the degraded mode, but AXL worked reliably enough in testing that the fallback
 stayed dormant.
 
-One constraint that came up during implementation: the AXL binary is Mach-O arm64, which means it
-won't run on Linux without cross-compilation or QEMU, so the backend has to run locally rather than
-on a cloud host. The frontend is deployed on Vercel and connects to the locally-running backend
-during the demo recording, which is a somewhat awkward setup but not unusual for a hackathon demo
-with hardware dependencies.
+One constraint that came up during implementation: the AXL source is a Go project, so it can be
+cross-compiled for any target platform. The `scripts/setup.sh` script builds the correct binary for
+the host platform at setup time (`node-darwin-arm64`, `node-linux-amd64`, `node-windows-amd64.exe`,
+etc.) and `mesh.ts` resolves the right binary name at runtime via `process.platform` + `process.arch`.
+The backend runs locally during the demo recording and the frontend is deployed on Vercel — standard
+for a project with local key material and AXL node state.
 
 It's also worth noting that AXL is genuinely new software with no production track record, limited
 documentation, and essentially one maintainer, which is a real risk. The upside is there's also no
@@ -171,9 +172,12 @@ stayed out of scope.
 
 ## Known Constraints and Open Items
 
-The AXL binary is Mach-O arm64 only, so the backend is local-only for the demo, and judges who
-want to run the full stack themselves will need Apple Silicon, which is documented in the README
-and the demo video covers the full flow for judges who don't want to run it locally.
+The AXL binary is cross-compiled from Go source for all major platforms (darwin/arm64, darwin/amd64,
+linux/amd64, linux/arm64, windows/amd64). Running `scripts/setup.sh` on any machine builds the
+correct binary and generates the required ed25519 keypairs. The backend is still local-only during
+the demo because AXL nodes hold in-memory mesh state and ed25519 keys that aren't suited for
+stateless cloud deployment, but any developer can run the full stack on their own machine regardless
+of OS or architecture.
 
 The available model on 0G Compute testnet is qwen-2.5-7b-instruct, which is a 7B parameter model
 and produces analysis quality that reflects that scale, so the system prompts are crafted to guide

@@ -179,3 +179,21 @@ These were considered and explicitly cut to protect scope:
 |------|-------------|-------------------|
 | Apr 28, 11:59 PM EDT | Working AXL mesh, cross-node test screenshot, ENS subnames registered | ETHGlobal Hacker Dashboard |
 | May 1, 11:59 PM EDT | Full working demo, 0G attestation tx hash, ENS resolution working | ETHGlobal Hacker Dashboard |
+
+---
+
+## Next Commit: Bug fixes + doc updates
+
+### Bug: key filename mismatch (critical)
+`scripts/setup.sh` generates `keys/node-9002.pem` etc.
+`packages/backend/src/axl/mesh.ts` line 44 checks for `agent-0-private.pem` etc. BEFORE checking `isAlive()`.
+Fix: swap check order in `mesh.ts` — check `isAlive()` first, THEN do key file check only if trying to spawn.
+Also: rename keys in setup.sh to match OR update mesh.ts to accept either naming convention.
+
+### Bug: binaries in git (~85MB)
+Add `axl/node-*` (except bare `node`) to `.gitignore`. Setup.sh builds them on demand.
+
+### Docs to update (3 files, 4 locations)
+1. `docs/spec/ARCHITECTURE.md` lines 32-36 — replace "arm64 only" constraint with cross-platform status
+2. `docs/spec/ARCHITECTURE.md` lines 174-176 — update "Apple Silicon required" note
+3. `docs/spec/RESEARCH.md` lines 27-30 — replace "only runs on Apple Silicon" paragraph
