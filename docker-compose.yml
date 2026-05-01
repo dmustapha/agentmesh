@@ -1,0 +1,126 @@
+# AgentMesh — Docker Compose
+# Runs 4 AXL mesh nodes + backend + frontend for any machine with Docker installed.
+# Usage: docker compose up --build
+
+services:
+  # ── AXL mesh nodes ─────────────────────────────────────────────────────────
+  axl-reentrancy:
+    build:
+      context: ./axl
+      dockerfile: containerfiles/Dockerfile
+    volumes:
+      - ./keys:/app/keys:ro
+    configs:
+      - source: axl-node-config-9002
+        target: /app/node-config.json
+    ports:
+      - "9002:9002"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9002/topology"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  axl-access:
+    build:
+      context: ./axl
+      dockerfile: containerfiles/Dockerfile
+    volumes:
+      - ./keys:/app/keys:ro
+    configs:
+      - source: axl-node-config-9003
+        target: /app/node-config.json
+    ports:
+      - "9003:9003"
+    depends_on:
+      axl-reentrancy:
+        condition: service_healthy
+
+  axl-logic:
+    build:
+      context: ./axl
+      dockerfile: containerfiles/Dockerfile
+    volumes:
+      - ./keys:/app/keys:ro
+    configs:
+      - source: axl-node-config-9004
+        target: /app/node-config.json
+    ports:
+      - "9004:9004"
+    depends_on:
+      axl-reentrancy:
+        condition: service_healthy
+
+  axl-economic:
+    build:
+      context: ./axl
+      dockerfile: containerfiles/Dockerfile
+    volumes:
+      - ./keys:/app/keys:ro
+    configs:
+      - source: axl-node-config-9005
+        target: /app/node-config.json
+    ports:
+      - "9005:9005"
+    depends_on:
+      axl-reentrancy:
+        condition: service_healthy
+
+  # ── Backend API ─────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    environment:
+      - AXL_BINARY_PATH=/usr/local/bin/axl-node
+      - KEYS_DIR=/app/keys
+      - PORT=3001
+    env_file:
+      - .env
+    volumes:
+      - ./keys:/app/keys
+    ports:
+      - "3001:3001"
+    depends_on:
+      axl-reentrancy:
+        condition: service_healthy
+      axl-access:
+        condition: service_started
+      axl-logic:
+        condition: service_started
+      axl-economic:
+        condition: service_started
+
+configs:
+  axl-node-config-9002:
+    content: |
+      {
+        "PrivateKeyPath": "keys/node-9002.pem",
+        "Peers": [],
+        "Listen": ["tls://0.0.0.0:9002"],
+        "AdminListen": "tcp://127.0.0.1:19002"
+      }
+  axl-node-config-9003:
+    content: |
+      {
+        "PrivateKeyPath": "keys/node-9003.pem",
+        "Peers": ["tls://axl-reentrancy:9002"],
+        "Listen": [],
+        "AdminListen": "tcp://127.0.0.1:19003"
+      }
+  axl-node-config-9004:
+    content: |
+      {
+        "PrivateKeyPath": "keys/node-9004.pem",
+        "Peers": ["tls://axl-reentrancy:9002"],
+        "Listen": [],
+        "AdminListen": "tcp://127.0.0.1:19004"
+      }
+  axl-node-config-9005:
+    content: |
+      {
+        "PrivateKeyPath": "keys/node-9005.pem",
+        "Peers": ["tls://axl-reentrancy:9002"],
+        "Listen": [],
+        "AdminListen": "tcp://127.0.0.1:19005"
+      }

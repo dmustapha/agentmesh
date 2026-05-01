@@ -1,6 +1,7 @@
 // File: packages/backend/src/index.ts
 
 import path from 'path';
+import { existsSync } from 'fs';
 import dotenv from 'dotenv';
 // Load from monorepo root — .env lives there, not in packages/backend/
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -13,13 +14,27 @@ import { ENSResolver } from './ens/resolver';
 import { startServer } from './server';
 import { ethers } from 'ethers';
 
+function resolveAxlBinary(axlDir: string): string {
+  const { platform, arch } = process;
+  const suffix = platform === 'win32' ? '.exe' : '';
+  const archMap: Record<string, string> = { x64: 'amd64', arm64: 'arm64', ia32: 'amd64' };
+  const goArch = archMap[arch] || 'amd64';
+  const platformName = platform === 'win32' ? 'windows' : platform === 'darwin' ? 'darwin' : 'linux';
+  const named = path.join(axlDir, `node-${platformName}-${goArch}${suffix}`);
+  if (existsSync(named)) return named;
+  // fallback to bare 'node' binary (original pre-built)
+  return path.join(axlDir, `node${suffix}`);
+}
+
 async function main(): Promise<void> {
   console.log('=== AgentMesh Backend Starting ===');
 
   const privateKey = process.env.PRIVATE_KEY || '';
   // Project root is three levels up from packages/backend/src/
   const projectRoot = path.resolve(__dirname, '../../..');
-  const axlBinary = process.env.AXL_BINARY_PATH || path.join(projectRoot, 'axl', 'node');
+  const axlDir = path.join(projectRoot, 'axl');
+  const axlBinary = process.env.AXL_BINARY_PATH || resolveAxlBinary(axlDir);
+  console.log(`[Init] AXL binary: ${axlBinary} (${process.platform}/${process.arch})`);
   const keysDir = process.env.KEYS_DIR
     ? path.resolve(projectRoot, process.env.KEYS_DIR)
     : path.join(projectRoot, 'keys');
