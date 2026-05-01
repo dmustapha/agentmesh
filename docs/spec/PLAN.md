@@ -129,12 +129,14 @@ the entire architecture falls apart.
 
 ## Phase 5: Integration + Polish (Day 6, check-in #2)
 
-- [ ] seed-demo.ts (idempotent script that creates all demo prerequisites from scratch)
+- [x] seed-demo.ts (idempotent script that creates all demo prerequisites from scratch)
   - Acceptance: running it twice produces same ENS records, same contracts, no duplicate errors
   - Acceptance: pre-seeded vulnerable contract on Sepolia has known reentrancy bug
 
-- [ ] End-to-end audit flow (paste the pre-seeded vulnerable contract, get a report with the
+- [~] End-to-end audit flow (paste the pre-seeded vulnerable contract, get a report with the
   expected reentrancy finding at CRITICAL severity)
+  - Audit flow works end to end; reentrancy finding appears consistently
+  - Still need to verify attestation link resolves on block explorer before recording
 
 - [ ] scripts/start-mesh.sh (one command to start all 4 AXL instances)
 - [ ] README updated with setup instructions
