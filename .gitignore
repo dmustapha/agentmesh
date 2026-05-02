@@ -24,7 +24,7 @@ packages/frontend/.vercel/
 .next/
 out/
 
-# Pipeline artifacts — expose the build process
+# Working state files
 .build-state.json
 .forge-state.json
 .design-forge-state.json
@@ -34,6 +34,8 @@ out/
 .polish-state.json
 .stress-test-state.json
 .demo-state.json
+.deploy-state.json
+.conductor-state.json
 BUILD-REPORT.md
 DEBUG-REPORT.md
 CRITIQUE-REPORT.md
@@ -47,9 +49,10 @@ MASTERPLAN.md
 PULSE.md
 pipeline-log.md
 SUBMISSION-REQUIREMENTS.md
+SHAREABLE-SUBMISSION-GUIDE.md
 concerns.md
 
-# Hackathon pipeline directories
+# Working directories
 warroom/
 research/
 
@@ -57,9 +60,8 @@ research/
 brand.json
 design-variations/
 debug-results/
-screenshots/
 
-# Scripts that expose the commit strategy
+# Draft scripts
 scripts/COMMIT-GUIDE.md
 scripts/make-april26-commit.py
 
@@ -72,6 +74,11 @@ scripts/make-april26-commit.py
 # Foundry
 .gas-snapshot
 
+# Logs and runtime
+logs/
+.mesh-pids
+*.log
+
 # Misc
 axl-repo/
 
@@ -79,7 +86,9 @@ axl-repo/
 axl/*
 !axl/node-config.json
 
-# Root-level pipeline working docs (docs/spec/ is the committed version)
+# Root-level working docs (committed versions in docs/spec/)
 /ARCHITECTURE.md
 /PLAN.md
 /PRD.md
+/0G.md
+/GENSYN.md
