@@ -41,46 +41,59 @@ export class ZGComputeClient {
     return this.ready && this.broker !== null;
   }
 
-  async chat(systemPrompt: string, userMessage: string): Promise<string> {
+  async chat(systemPrompt: string, userMessage: string, retries = 2): Promise<string> {
     if (!this.broker || !this.ready) {
       throw new Error('0G Compute broker not initialized or not ready.');
     }
 
-    // Wrap all broker operations in a timeout to prevent SDK retry loops from hanging
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20_000);
+    let lastError: Error | null = null;
 
-    try {
-      const { endpoint, model } = await this.broker.inference.getServiceMetadata(this.providerAddress);
-      const headers = await this.broker.inference.getRequestHeaders(this.providerAddress);
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20_000);
 
-      const response = await fetch(`${endpoint}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...headers,
-        },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage },
-          ],
-          model,
-          temperature: 0.3,
-          max_tokens: 2048,
-        }),
-        signal: controller.signal,
-      });
+      try {
+        const { endpoint, model } = await this.broker.inference.getServiceMetadata(this.providerAddress);
+        const headers = await this.broker.inference.getRequestHeaders(this.providerAddress);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`0G Compute inference failed: ${response.status} ${errorText}`);
+        const response = await fetch(`${endpoint}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...headers,
+          },
+          body: JSON.stringify({
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage },
+            ],
+            model,
+            temperature: 0.3,
+            max_tokens: 2048,
+          }),
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`0G Compute inference failed: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json() as { choices: Array<{ message: { content: string } }> };
+        return data.choices[0]?.message?.content || '{}';
+      } catch (error) {
+        lastError = error as Error;
+        if (attempt < retries) {
+          const delay = 1000 * (attempt + 1);
+          console.warn(`[0G Compute] Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, lastError.message);
+          await new Promise((r) => setTimeout(r, delay));
+        }
+        continue;
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      const data = await response.json() as { choices: Array<{ message: { content: string } }> };
-      return data.choices[0]?.message?.content || '{}';
-    } finally {
-      clearTimeout(timeoutId);
     }
+
+    throw lastError ?? new Error('0G Compute inference failed after retries');
   }
 }

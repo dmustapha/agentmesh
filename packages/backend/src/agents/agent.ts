@@ -76,10 +76,18 @@ export class AuditAgent {
         llmTimeout,
       ]);
 
-      // Strip markdown code fences if present (LLMs sometimes wrap JSON in ```json ... ```)
+      // Clean LLM response: strip markdown fences, trailing commas, fix truncated JSON
       let cleanResponse = response.trim();
       if (cleanResponse.startsWith('```')) {
         cleanResponse = cleanResponse.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+      }
+      // Remove trailing commas before } or ] (common LLM error)
+      cleanResponse = cleanResponse.replace(/,\s*([\]}])/g, '$1');
+      // Attempt to close truncated JSON
+      if (!cleanResponse.endsWith('}') && !cleanResponse.endsWith(']')) {
+        const openBraces = (cleanResponse.match(/{/g) || []).length;
+        const closeBraces = (cleanResponse.match(/}/g) || []).length;
+        cleanResponse += '}'.repeat(Math.max(0, openBraces - closeBraces));
       }
       const parsed = JSON.parse(cleanResponse);
       const llmFindings: Finding[] = (parsed.findings || []).map((f: Record<string, unknown>) => ({
@@ -109,18 +117,22 @@ export class AuditAgent {
 
   // Deterministic pattern scanner -- runs before LLM, always produces baseline findings
   private staticScan(sourceCode: string): Finding[] {
-    const STATIC_PATTERNS: Record<string, Array<{
+    interface StaticPattern {
       regex: RegExp; type: string; severity: string;
       title: string; description: string; evidence: string; confidence: number;
-    }>> = {
+      suppressIf?: RegExp; // False-positive suppression: skip match if this pattern is also present
+    }
+
+    const STATIC_PATTERNS: Record<string, StaticPattern[]> = {
       reentrancy: [
         {
           regex: /\.call\{value:/,
           type: 'reentrancy', severity: 'HIGH',
           title: 'Potential reentrancy: external call with value',
-          description: 'Contract makes an external call that sends ETH. If no nonReentrant guard, callee can re-enter.',
+          description: 'Contract makes an external call that sends ETH. If no reentrancy guard, callee can re-enter.',
           evidence: '.call{value:',
           confidence: 0.75,
+          suppressIf: /nonReentrant|ReentrancyGuard/,
         },
         {
           regex: /\.call\{value:.*\}[\s\S]{0,200}[a-zA-Z_]+\s*[+-]?=\s*(?!0)/m,
@@ -129,26 +141,94 @@ export class AuditAgent {
           description: 'State variable is modified after an external .call{value:} -- classic reentrancy pattern.',
           evidence: 'state change after .call{value:}',
           confidence: 0.9,
+          suppressIf: /nonReentrant|ReentrancyGuard/,
+        },
+        {
+          regex: /\.transfer\(|\.send\(/,
+          type: 'reentrancy', severity: 'LOW',
+          title: 'Transfer/send usage (limited gas forwarding)',
+          description: 'Using .transfer() or .send() limits gas to 2300, but may fail with contract recipients after EIP-1884.',
+          evidence: '.transfer() or .send()',
+          confidence: 0.5,
         },
       ],
       'access-control': [
         {
-          regex: /function\s+\w+\s*\([^)]*\)\s+public(?!\s+view|\s+pure)(?![^{]*onlyOwner)/,
+          regex: /function\s+\w+\s*\([^)]*\)\s+public(?!\s+view|\s+pure)(?![^{]*onlyOwner|[^{]*onlyRole|[^{]*require\s*\(\s*msg\.sender)/,
           type: 'missing-access-control', severity: 'MEDIUM',
-          title: 'Public state-changing function without onlyOwner',
-          description: 'A public non-view function lacks an access control modifier.',
-          evidence: 'public function without onlyOwner',
+          title: 'Public state-changing function without access control',
+          description: 'A public non-view function lacks an access control modifier (onlyOwner, onlyRole, or msg.sender check).',
+          evidence: 'public function without access control',
           confidence: 0.7,
+        },
+        {
+          regex: /tx\.origin/,
+          type: 'access-control', severity: 'HIGH',
+          title: 'tx.origin used for authentication',
+          description: 'Using tx.origin for authorization is vulnerable to phishing attacks via intermediary contracts.',
+          evidence: 'tx.origin',
+          confidence: 0.9,
+        },
+        {
+          regex: /selfdestruct\s*\(|suicide\s*\(/,
+          type: 'access-control', severity: 'CRITICAL',
+          title: 'selfdestruct present in contract',
+          description: 'Contract contains selfdestruct which can permanently destroy the contract and send remaining ETH to an address.',
+          evidence: 'selfdestruct()',
+          confidence: 0.85,
+          suppressIf: /onlyOwner[\s\S]{0,100}selfdestruct/,
+        },
+        {
+          regex: /delegatecall\s*\(/,
+          type: 'access-control', severity: 'HIGH',
+          title: 'delegatecall usage detected',
+          description: 'delegatecall executes code in the context of the calling contract. Malicious targets can corrupt storage.',
+          evidence: 'delegatecall()',
+          confidence: 0.8,
         },
       ],
       logic: [
         {
-          regex: /uint(?:256)?\s+\w+\s*=\s*\w+\s*\+\s*\w+(?!\s*;[\s\S]*SafeMath)/,
+          regex: /uint(?:256)?\s+\w+\s*=\s*\w+\s*\+\s*\w+/,
           type: 'integer-overflow', severity: 'MEDIUM',
           title: 'Unchecked arithmetic addition',
-          description: 'Addition without SafeMath or unchecked block -- potential overflow in older Solidity.',
+          description: 'Addition without SafeMath or unchecked block -- potential overflow in Solidity < 0.8.',
           evidence: 'uint addition without SafeMath',
           confidence: 0.6,
+          suppressIf: /pragma solidity\s+\^?0\.[89]/,
+        },
+        {
+          regex: /unchecked\s*\{/,
+          type: 'logic-error', severity: 'MEDIUM',
+          title: 'Unchecked arithmetic block',
+          description: 'Unchecked block disables overflow/underflow protection. Verify the math cannot overflow.',
+          evidence: 'unchecked { }',
+          confidence: 0.65,
+        },
+        {
+          regex: /assembly\s*\{/,
+          type: 'logic-error', severity: 'MEDIUM',
+          title: 'Inline assembly usage',
+          description: 'Inline assembly bypasses Solidity safety checks. Manual review required for correctness.',
+          evidence: 'assembly { }',
+          confidence: 0.6,
+        },
+        {
+          regex: /ecrecover\s*\(/,
+          type: 'logic-error', severity: 'HIGH',
+          title: 'ecrecover without zero-address check',
+          description: 'ecrecover returns address(0) for invalid signatures. Without checking, anyone can forge authorization.',
+          evidence: 'ecrecover()',
+          confidence: 0.75,
+          suppressIf: /require\s*\([^)]*!=\s*address\(0\)/,
+        },
+        {
+          regex: /block\.(timestamp|number)\s*[<>=]/,
+          type: 'logic-error', severity: 'LOW',
+          title: 'Block timestamp/number used for comparison',
+          description: 'Block timestamp can be manipulated slightly by miners. Avoid using for critical time-sensitive logic.',
+          evidence: 'block.timestamp or block.number comparison',
+          confidence: 0.5,
         },
       ],
       economic: [
@@ -159,13 +239,43 @@ export class AuditAgent {
           description: 'Contract reads spot price (slot0/getReserves) which can be manipulated via flashloan in the same block.',
           evidence: 'slot0() or getReserves() oracle',
           confidence: 0.85,
+          suppressIf: /TWAP|twap|timeWeightedAverage/,
+        },
+        {
+          regex: /flashLoan|flashloan|flash_loan/i,
+          type: 'flash-loan', severity: 'MEDIUM',
+          title: 'Flash loan interface detected',
+          description: 'Contract implements or interacts with flash loans. Ensure all state changes are atomic and validated.',
+          evidence: 'flashLoan reference',
+          confidence: 0.7,
+        },
+        {
+          regex: /balanceOf\s*\(\s*address\s*\(\s*this\s*\)\s*\)/,
+          type: 'price-manipulation', severity: 'HIGH',
+          title: 'Contract balance used as accounting variable',
+          description: 'Using balanceOf(address(this)) for accounting can be manipulated via direct ETH/token sends.',
+          evidence: 'balanceOf(address(this))',
+          confidence: 0.8,
+        },
+        {
+          regex: /\.approve\s*\([^)]*,\s*type\(uint256\)\.max/,
+          type: 'other', severity: 'MEDIUM',
+          title: 'Max approval (infinite allowance)',
+          description: 'Setting max uint256 approval gives the spender unlimited access to tokens. Consider bounded approvals.',
+          evidence: 'approve(, type(uint256).max)',
+          confidence: 0.6,
         },
       ],
     };
 
     const patterns = STATIC_PATTERNS[this.node.specialty] || [];
     return patterns
-      .filter((p) => p.regex.test(sourceCode))
+      .filter((p) => {
+        if (!p.regex.test(sourceCode)) return false;
+        // False-positive suppression: skip if suppressIf pattern also matches
+        if (p.suppressIf && p.suppressIf.test(sourceCode)) return false;
+        return true;
+      })
       .map((p) => ({
         id: randomUUID(),
         agentId: this.node.id,
@@ -234,10 +344,10 @@ export class AuditAgent {
       return {
         agentId: this.node.id,
         findingId: finding.id,
-        agree: true, // Default to agreeing if inference fails
+        agree: false, // Abstain on inference failure — never inflate consensus
         severity: finding.severity,
-        confidence: 0.3,
-        reasoning: 'Inference failed, defaulting to agree with low confidence',
+        confidence: 0,
+        reasoning: 'Inference failed — abstaining to avoid false consensus inflation',
       };
     }
   }

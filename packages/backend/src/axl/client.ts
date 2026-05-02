@@ -18,6 +18,7 @@ export class AXLClient {
         'Content-Type': 'application/octet-stream',
       },
       body: new Uint8Array(body),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!res.ok) {
@@ -33,7 +34,7 @@ export class AXLClient {
   }
 
   async recv(): Promise<{ fromPeerId: string; data: Buffer } | null> {
-    const res = await fetch(`${this.baseUrl}/recv`);
+    const res = await fetch(`${this.baseUrl}/recv`, { signal: AbortSignal.timeout(10000) });
 
     if (res.status === 204) {
       return null; // No messages
@@ -64,7 +65,7 @@ export class AXLClient {
   }
 
   async topology(): Promise<TopologyData> {
-    const res = await fetch(`${this.baseUrl}/topology`);
+    const res = await fetch(`${this.baseUrl}/topology`, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) {
       throw new Error(`AXL topology failed: ${res.status}`);
     }
@@ -88,6 +89,7 @@ export class AXLClient {
         id: Date.now(),
         params,
       }),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!res.ok) {

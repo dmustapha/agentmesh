@@ -19,11 +19,18 @@ export class ZGStorageClient {
   }
 
   async uploadReport(report: AuditReport): Promise<{ rootHash: string; txHash: string }> {
+    const reportJson = JSON.stringify(report, null, 2);
+    const sizeBytes = Buffer.byteLength(reportJson, 'utf8');
+    const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
+    if (sizeBytes > MAX_UPLOAD_SIZE) {
+      throw new Error(`Report too large for upload: ${(sizeBytes / 1024 / 1024).toFixed(1)}MB exceeds ${MAX_UPLOAD_SIZE / 1024 / 1024}MB limit`);
+    }
+
     // Write report to temp file
     const tempDir = join(tmpdir(), 'agentmesh');
     mkdirSync(tempDir, { recursive: true });
     const tempFile = join(tempDir, `report-${report.id}.json`);
-    writeFileSync(tempFile, JSON.stringify(report, null, 2));
+    writeFileSync(tempFile, reportJson);
 
     try {
       const file = await ZgFile.fromFilePath(tempFile);
@@ -38,8 +45,9 @@ export class ZGStorageClient {
       }
 
       // Handle both single and batch upload response shapes
-      const rootHash = 'rootHash' in txResponse ? txResponse.rootHash : (txResponse as any).root ?? '';
-      const txHash = 'txHash' in txResponse ? txResponse.txHash : (txResponse as any).transactionHash ?? '';
+      const resp = txResponse as Record<string, unknown>;
+      const rootHash = String(resp.rootHash ?? resp.root ?? '');
+      const txHash = String(resp.txHash ?? resp.transactionHash ?? '');
 
       console.log(`[0G Storage] Uploaded report ${report.id}: rootHash=${rootHash}`);
 

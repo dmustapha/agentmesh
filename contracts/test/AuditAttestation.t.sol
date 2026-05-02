@@ -11,6 +11,7 @@ contract AuditAttestationTest is Test {
 
     function setUp() public {
         attestation = new AuditAttestation();
+        attestation.authorizeAuditor(auditor);
     }
 
     function testAttest() public {

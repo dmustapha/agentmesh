@@ -226,7 +226,8 @@ export class AgentManager {
       this.broadcaster?.broadcast({ type: 'agent:status', data: agent.node, timestamp: Date.now() });
     }
 
-    // Persist for GET /api/audit/:id (keep last 50 reports in memory)
+    // In-memory cache only — reports are lost on restart.
+    // Persistent copies live on 0G Storage (rootHash above).
     this.completedReports.set(report.id, report);
     if (this.completedReports.size > 50) {
       const oldest = this.completedReports.keys().next().value;

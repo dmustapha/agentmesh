@@ -40,9 +40,10 @@ export class ConsensusEngine {
         (finding.confidence >= CONSENSUS_CRITICAL_CONFIDENCE && finding.severity === 'CRITICAL');
 
       if (includeFinding) {
+        // Include severity from ALL votes (not just agreeing) to catch critical assessments
         const severities = [
           finding.severity,
-          ...findingVotes.filter((v) => v.agree).map((v) => v.severity),
+          ...findingVotes.map((v) => v.severity),
         ];
         const finalSeverity = this.maxSeverity(severities as Severity[]);
 

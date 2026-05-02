@@ -68,7 +68,7 @@ describe('TopologyGraph', () => {
   it('displays connection count', () => {
     render(<TopologyGraph agents={mockAgents} topology={mockTopology} />);
     // Total peers: 3 + 1 + 1 + 1 = 6
-    expect(screen.getByText('6 connections')).toBeInTheDocument();
+    expect(screen.getByText('6 links')).toBeInTheDocument();
   });
 
   it('shows title and subtitle', () => {
@@ -80,7 +80,7 @@ describe('TopologyGraph', () => {
   it('renders specialty legends', () => {
     render(<TopologyGraph agents={mockAgents} topology={mockTopology} />);
     // Legend labels appear in the bottom bar (may also appear in SVG node labels)
-    const legends = document.querySelectorAll('.text-\\[10px\\].text-gray-600.capitalize');
+    const legends = document.querySelectorAll('.text-\\[10px\\].text-mesh-muted.capitalize');
     const legendTexts = Array.from(legends).map(el => el.textContent);
     expect(legendTexts).toContain('reentrancy');
     expect(legendTexts).toContain('access control');

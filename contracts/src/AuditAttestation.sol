@@ -13,6 +13,8 @@ contract AuditAttestation {
         uint256 timestamp;
     }
 
+    address public owner;
+    mapping(address => bool) public authorizedAuditors;
     mapping(bytes32 => Attestation) public attestations;
     bytes32[] public attestationIds;
 
@@ -25,13 +27,43 @@ contract AuditAttestation {
         uint8 highCount
     );
 
+    event AuditorAuthorized(address indexed auditor);
+    event AuditorRevoked(address indexed auditor);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
+        _;
+    }
+
+    modifier onlyAuthorized() {
+        require(authorizedAuditors[msg.sender] || msg.sender == owner, "Not authorized auditor");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        // Owner is automatically an authorized auditor
+        authorizedAuditors[msg.sender] = true;
+    }
+
+    function authorizeAuditor(address auditor) external onlyOwner {
+        require(auditor != address(0), "Invalid auditor address");
+        authorizedAuditors[auditor] = true;
+        emit AuditorAuthorized(auditor);
+    }
+
+    function revokeAuditor(address auditor) external onlyOwner {
+        authorizedAuditors[auditor] = false;
+        emit AuditorRevoked(auditor);
+    }
+
     function attest(
         address contractAudited,
         bytes32 findingsHash,
         bytes32 storageRootHash,
         uint8 criticalCount,
         uint8 highCount
-    ) external returns (bytes32) {
+    ) external onlyAuthorized returns (bytes32) {
         require(contractAudited != address(0), "Invalid contract address");
         require(findingsHash != bytes32(0), "Findings hash required");
 

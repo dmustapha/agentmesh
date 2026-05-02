@@ -206,12 +206,28 @@ export class AXLMesh {
   }
 
   async stop(): Promise<void> {
+    const killPromises: Promise<void>[] = [];
     for (const [specialty, node] of this.nodes) {
       if (node.process) {
-        node.process.kill('SIGTERM');
-        console.log(`[Mesh] Stopped ${specialty} agent on :${node.port}`);
+        killPromises.push(
+          new Promise<void>((resolve) => {
+            const proc = node.process!;
+            const forceKillTimer = setTimeout(() => {
+              proc.kill('SIGKILL');
+              console.warn(`[Mesh] Force-killed ${specialty} agent (SIGTERM timeout)`);
+              resolve();
+            }, 5000);
+            proc.once('exit', () => {
+              clearTimeout(forceKillTimer);
+              resolve();
+            });
+            proc.kill('SIGTERM');
+            console.log(`[Mesh] Stopping ${specialty} agent on :${node.port}`);
+          }),
+        );
       }
     }
+    await Promise.all(killPromises);
     this.nodes.clear();
   }
 }

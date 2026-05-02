@@ -32,8 +32,8 @@ export class ZGChainClient {
     this.provider = new ethers.JsonRpcProvider(ZG_CHAIN_RPC);
     this.signer = new ethers.Wallet(privateKey, this.provider);
 
-    const registryAddr = AGENT_REGISTRY_ADDRESS || ethers.ZeroAddress;
-    const attestationAddr = AUDIT_ATTESTATION_ADDRESS || ethers.ZeroAddress;
+    const registryAddr = process.env.AGENT_REGISTRY_ADDRESS || AGENT_REGISTRY_ADDRESS || ethers.ZeroAddress;
+    const attestationAddr = process.env.AUDIT_ATTESTATION_ADDRESS || AUDIT_ATTESTATION_ADDRESS || ethers.ZeroAddress;
 
     this.registry = new ethers.Contract(
       registryAddr,
@@ -47,6 +47,35 @@ export class ZGChainClient {
     );
   }
 
+  private async sendTx(
+    contract: ethers.Contract,
+    method: string,
+    args: unknown[],
+    label: string,
+    retries = 1,
+  ): Promise<string> {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const gasEstimate = await contract[method].estimateGas(...args);
+        const gasLimit = (gasEstimate * 120n) / 100n; // 20% buffer
+        const nonce = await this.signer.getNonce();
+        const tx = await contract[method](...args, { nonce, gasLimit });
+        const receipt = await tx.wait();
+        console.log(`[0G Chain] ${label}: ${receipt.hash}`);
+        return receipt.hash;
+      } catch (error) {
+        const msg = (error as Error).message;
+        if (attempt < retries && (msg.includes('nonce') || msg.includes('timeout') || msg.includes('NETWORK_ERROR'))) {
+          console.warn(`[0G Chain] ${label} attempt ${attempt + 1} failed, retrying:`, msg);
+          await new Promise((r) => setTimeout(r, 2000));
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new Error(`${label} failed after retries`);
+  }
+
   async registerAgent(name: string, capability: string, peerId: string): Promise<string> {
     // Convert peerId to bytes32 — 64-char hex string (ed25519 pubkey) maps directly
     let peerIdBytes: string;
@@ -57,11 +86,7 @@ export class ZGChainClient {
       // Fallback: hash non-standard peer IDs (e.g., simulated)
       peerIdBytes = ethers.id(peerId);
     }
-    const nonce = await this.signer.getNonce();
-    const tx = await this.registry.registerAgent(name, capability, peerIdBytes, { nonce });
-    const receipt = await tx.wait();
-    console.log(`[0G Chain] Registered agent ${name}: ${receipt.hash}`);
-    return receipt.hash;
+    return this.sendTx(this.registry, 'registerAgent', [name, capability, peerIdBytes], `Register agent ${name}`);
   }
 
   async attest(
@@ -76,16 +101,12 @@ export class ZGChainClient {
       ? ethers.zeroPadValue(storageRootHash, 32)
       : ethers.id(storageRootHash);
 
-    const tx = await this.attestation.attest(
-      contractAddress,
-      findingsBytes,
-      storageBytes,
-      criticalCount,
-      highCount,
+    return this.sendTx(
+      this.attestation,
+      'attest',
+      [contractAddress, findingsBytes, storageBytes, criticalCount, highCount],
+      'Attestation',
     );
-    const receipt = await tx.wait();
-    console.log(`[0G Chain] Attestation created: ${receipt.hash}`);
-    return receipt.hash;
   }
 
   async getAgentCount(): Promise<number> {

@@ -120,7 +120,7 @@ describe('useAudit', () => {
 
   it('accumulates events across re-renders', () => {
     const events1: WSEvent[] = [
-      { type: 'audit:finding', data: { id: 'f-1' } as any, timestamp: 1 },
+      { type: 'audit:finding', data: { id: 'f-1', severity: 'HIGH' } as any, timestamp: 1 },
     ];
     const { result, rerender } = renderHook(
       ({ events }) => useAudit(events),
@@ -130,7 +130,7 @@ describe('useAudit', () => {
 
     const events2: WSEvent[] = [
       ...events1,
-      { type: 'audit:finding', data: { id: 'f-2' } as any, timestamp: 2 },
+      { type: 'audit:finding', data: { id: 'f-2', severity: 'MEDIUM' } as any, timestamp: 2 },
     ];
     rerender({ events: events2 });
     expect(result.current.findings).toHaveLength(2);

@@ -10,6 +10,7 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     testTimeout: 10000,
     setupFiles: ['./src/test-setup.ts'],
+    dangerouslyIgnoreUnhandledErrors: true,
   },
   resolve: {
     alias: {

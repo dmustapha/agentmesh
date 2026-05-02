@@ -37,6 +37,8 @@ export class AXLTransport implements Transport {
 }
 
 // WebSocket fallback transport (used if AXL is unstable)
+const MAX_INBOUND_QUEUE = 1000;
+
 export class WSTransport implements Transport {
   private peerId: string;
   private peers: Map<string, WebSocket> = new Map();
@@ -71,6 +73,9 @@ export class WSTransport implements Transport {
     ws.addEventListener('message', (event) => {
       try {
         const message = JSON.parse(String(event.data)) as AXLMessage;
+        if (this.inbound.length >= MAX_INBOUND_QUEUE) {
+          this.inbound.shift(); // Drop oldest to maintain backpressure
+        }
         this.inbound.push({ fromPeerId: peerId, message });
       } catch {
         console.warn('WSTransport: invalid message received');

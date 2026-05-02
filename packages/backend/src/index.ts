@@ -13,6 +13,7 @@ import { ZGChainClient } from './zg/chain';
 import { ENSResolver } from './ens/resolver';
 import { startServer } from './server';
 import { ethers } from 'ethers';
+import { ENS_SEPOLIA_RPC } from '@agentmesh/shared';
 
 function resolveAxlBinary(axlDir: string): string {
   const { platform, arch } = process;
@@ -66,7 +67,7 @@ async function main(): Promise<void> {
   const chain = new ZGChainClient(privateKey || '0x0000000000000000000000000000000000000000000000000000000000000001');
   console.log('[Init] 0G Chain client ready');
 
-  const sepoliaRpc = process.env.SEPOLIA_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/demo';
+  const sepoliaRpc = process.env.SEPOLIA_RPC_URL || ENS_SEPOLIA_RPC;
   const sepoliaProvider = new ethers.JsonRpcProvider(sepoliaRpc);
   const sepoliaSigner = privateKey
     ? new ethers.Wallet(privateKey, sepoliaProvider)
@@ -75,7 +76,7 @@ async function main(): Promise<void> {
   console.log('[Init] ENS resolver ready');
 
   // Create agent manager and initialize mesh
-  const demoMode = !privateKey;
+  const demoMode = !privateKey || process.env.DEMO_MODE === 'true';
   const manager = new AgentManager(mesh, compute, storage, chain, ens, demoMode);
   let agents;
   try {
@@ -91,11 +92,13 @@ async function main(): Promise<void> {
   console.log('=== AgentMesh Backend Ready ===');
 
   // Graceful shutdown
-  process.on('SIGINT', async () => {
+  const shutdown = async () => {
     console.log('\nShutting down...');
     await manager.shutdown();
     process.exit(0);
-  });
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
 main().catch((error) => {

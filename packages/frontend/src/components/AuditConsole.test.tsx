@@ -1,11 +1,11 @@
 // Tests for AuditConsole component
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuditConsole } from './AuditConsole';
 
 describe('AuditConsole', () => {
-  let onSubmit: ReturnType<typeof vi.fn>;
+  let onSubmit: Mock<(input: { contractAddress?: string; sourceCode?: string }) => void>;
 
   beforeEach(() => {
     onSubmit = vi.fn();
@@ -89,13 +89,13 @@ describe('AuditConsole', () => {
 
   it('shows loading state when audit is running', () => {
     render(<AuditConsole onSubmit={onSubmit} auditStatus="started" />);
-    expect(screen.getByText('Audit in Progress...')).toBeInTheDocument();
+    expect(screen.getByText('Analyzing Contract...')).toBeInTheDocument();
   });
 
   it('disables submit button during audit', () => {
     render(<AuditConsole onSubmit={onSubmit} auditStatus="started" />);
     const buttons = screen.getAllByRole('button');
-    const submitButton = buttons.find(b => b.textContent?.includes('Audit in Progress'));
+    const submitButton = buttons.find(b => b.textContent?.includes('Analyzing Contract'));
     expect(submitButton).toBeDisabled();
   });
 

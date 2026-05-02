@@ -1,13 +1,41 @@
 // File: packages/backend/src/api/routes.ts
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { AgentManager } from '../agents/manager';
 import { AuditRequest } from '@agentmesh/shared';
 import { ETHERSCAN_API } from '@agentmesh/shared';
 import { randomUUID } from 'crypto';
 
+// Simple in-memory rate limiter (no external dependency)
+function rateLimit(windowMs: number, maxRequests: number) {
+  const hits = new Map<string, { count: number; resetAt: number }>();
+
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const key = req.ip || 'unknown';
+    const now = Date.now();
+    const entry = hits.get(key);
+
+    if (!entry || now > entry.resetAt) {
+      hits.set(key, { count: 1, resetAt: now + windowMs });
+      next();
+      return;
+    }
+
+    if (entry.count >= maxRequests) {
+      res.status(429).json({ error: 'Too many requests, try again later' });
+      return;
+    }
+
+    entry.count++;
+    next();
+  };
+}
+
 export function createRoutes(manager: AgentManager): Router {
   const router = Router();
+
+  // Rate limit: audit endpoint is expensive (LLM calls), so limit to 5 per minute
+  const auditLimiter = rateLimit(60_000, 5);
 
   router.get('/agents', async (_req: Request, res: Response) => {
     try {
@@ -73,7 +101,7 @@ export function createRoutes(manager: AgentManager): Router {
     }
   });
 
-  router.post('/audit', async (req: Request, res: Response) => {
+  router.post('/audit', auditLimiter, async (req: Request, res: Response) => {
     try {
       const { contractAddress, sourceCode } = req.body;
 

@@ -30,8 +30,9 @@ fi
 echo "Using AXL binary: $BINARY"
 > "$PIDS_FILE"
 
+INDEX=0
 for PORT in 9002 9003 9004 9005; do
-  CONFIG="$KEYS_DIR/node-config-$PORT.json"
+  CONFIG="$KEYS_DIR/node-config-$INDEX.json"
   if [ ! -f "$CONFIG" ]; then
     echo "ERROR: Config not found: $CONFIG — run ./scripts/setup.sh first"
     exit 1
@@ -42,6 +43,7 @@ for PORT in 9002 9003 9004 9005; do
   PID=$!
   echo "$PID" >> "$PIDS_FILE"
   echo "[Mesh] Node :$PORT started (PID $PID)"
+  INDEX=$((INDEX + 1))
 done
 
 echo "[Mesh] All nodes running. PIDs in $PIDS_FILE"
