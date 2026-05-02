@@ -1,10 +1,6 @@
 // File: packages/frontend/src/app/layout.tsx
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
   title: 'AgentMesh - Decentralized AI Agent Infrastructure',
@@ -20,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${jetbrains.variable} font-sans bg-mesh-bg text-white min-h-screen grid-bg`}>
+      <body className="font-sans bg-mesh-bg text-white min-h-screen grid-bg">
         {/* Ambient floating particles */}
         <div className="particles" aria-hidden="true">
           <div className="particle" style={{ left: '10%' }} />

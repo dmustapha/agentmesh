@@ -3,13 +3,7 @@
 
 import { useRef, useEffect } from 'react';
 import type { AXLMessage, AgentNode } from '@agentmesh/shared';
-
-const AGENT_COLORS: Record<string, string> = {
-  reentrancy: 'text-red-400',
-  'access-control': 'text-blue-400',
-  logic: 'text-yellow-400',
-  economic: 'text-green-400',
-};
+import { SPECIALTY_TEXT_COLORS, SPECIALTY_BG_COLORS } from '@/lib/agent-colors';
 
 const MSG_TYPE_CONFIG: Record<string, { bg: string; text: string; icon: string }> = {
   finding: { bg: 'bg-red-500/10', text: 'text-red-400', icon: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z' },
@@ -28,7 +22,6 @@ export function ChatFeed({ messages, agents }: ChatFeedProps) {
   const agentMap = new Map(agents.map((a) => [a.id, a]));
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -41,8 +34,8 @@ export function ChatFeed({ messages, agents }: ChatFeedProps) {
         {messages.map((msg, i) => {
           const sender = agentMap.get(msg.fromAgent);
           const displayName = sender ? sender.ensName.split('.')[0] : msg.fromAgent.slice(0, 8);
-          const colorClass = sender ? (AGENT_COLORS[sender.specialty] || 'text-mesh-accent') : 'text-mesh-accent';
-          const typeConfig = MSG_TYPE_CONFIG[msg.type] || { bg: 'bg-mesh-border/30', text: 'text-gray-500', icon: '' };
+          const colorClass = sender ? (SPECIALTY_TEXT_COLORS[sender.specialty] || 'text-mesh-accent') : 'text-mesh-accent';
+          const typeConfig = MSG_TYPE_CONFIG[msg.type] || { bg: 'bg-mesh-border/30', text: 'text-mesh-muted', icon: '' };
           const isNew = i === messages.length - 1;
 
           return (
@@ -55,10 +48,7 @@ export function ChatFeed({ messages, agents }: ChatFeedProps) {
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="flex items-center gap-1.5">
                   <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    sender?.specialty === 'reentrancy' ? 'bg-red-400' :
-                    sender?.specialty === 'access-control' ? 'bg-blue-400' :
-                    sender?.specialty === 'logic' ? 'bg-yellow-400' :
-                    sender?.specialty === 'economic' ? 'bg-green-400' : 'bg-mesh-accent'
+                    sender ? (SPECIALTY_BG_COLORS[sender.specialty] || 'bg-mesh-accent') : 'bg-mesh-accent'
                   }`} />
                   <span className={`font-mono text-[11px] font-semibold ${colorClass}`}>{displayName}</span>
                 </div>
@@ -71,7 +61,7 @@ export function ChatFeed({ messages, agents }: ChatFeedProps) {
                   {msg.type}
                 </span>
               </div>
-              <p className="text-[11px] text-gray-400 leading-relaxed pl-3">
+              <p className="text-[11px] text-mesh-muted leading-relaxed pl-3">
                 {typeof msg.payload === 'object' ? JSON.stringify(msg.payload).slice(0, 140) : String(msg.payload).slice(0, 140)}
               </p>
             </div>
@@ -80,18 +70,18 @@ export function ChatFeed({ messages, agents }: ChatFeedProps) {
         {messages.length === 0 && (
           <div className="py-10 text-center">
             <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-mesh-accent/5 border border-mesh-border flex items-center justify-center">
-              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <svg className="w-5 h-5 text-mesh-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <p className="text-xs text-gray-600 font-medium">Waiting for agent communication</p>
-            <p className="text-[10px] text-gray-700 mt-1">Messages appear during an active audit</p>
+            <p className="text-xs text-mesh-muted font-medium">Waiting for agent communication</p>
+            <p className="text-[10px] text-mesh-muted-dim mt-1">Messages appear during an active audit</p>
           </div>
         )}
       </div>
       {messages.length > 0 && (
         <div className="px-3 py-2 border-t border-mesh-border/30 flex items-center justify-between">
-          <span className="text-[9px] text-gray-700 font-mono">{messages.length} messages</span>
+          <span className="text-[9px] text-mesh-muted-dim font-mono">{messages.length} messages</span>
           <span className="flex items-center gap-1 text-[9px] text-mesh-accent">
             <span className="w-1 h-1 rounded-full bg-mesh-accent animate-pulse" />
             live

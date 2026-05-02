@@ -8,6 +8,7 @@ export function useWebSocket(url: string) {
   const [events, setEvents] = useState<WSEvent[]>([]);
   const [connected, setConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const retryRef = useRef(0);
 
   const connect = useCallback(() => {
     // Clean up any existing connection before reconnecting
@@ -20,11 +21,17 @@ export function useWebSocket(url: string) {
     try {
       const ws = new WebSocket(url);
 
-      ws.onopen = () => setConnected(true);
+      ws.onopen = () => {
+        setConnected(true);
+        retryRef.current = 0; // Reset backoff on successful connection
+      };
       ws.onclose = () => {
         setConnected(false);
         wsRef.current = null;
-        setTimeout(connect, 3000); // Reconnect after 3s
+        // Exponential backoff: 1s → 2s → 4s → 8s → ... → 30s cap
+        const delay = Math.min(1000 * Math.pow(2, retryRef.current), 30_000);
+        retryRef.current++;
+        setTimeout(connect, delay);
       };
       ws.onerror = () => ws.close();
       ws.onmessage = (event) => {
@@ -37,7 +44,9 @@ export function useWebSocket(url: string) {
       wsRef.current = ws;
     } catch {
       // WebSocket constructor can throw if URL is invalid
-      setTimeout(connect, 3000);
+      const delay = Math.min(1000 * Math.pow(2, retryRef.current), 30_000);
+      retryRef.current++;
+      setTimeout(connect, delay);
     }
   }, [url]);
 

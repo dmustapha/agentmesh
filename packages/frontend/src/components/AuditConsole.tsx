@@ -35,7 +35,6 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
   const progressRef = useRef<HTMLDivElement>(null);
   const [elapsed, setElapsed] = useState(0);
 
-  // Elapsed timer during audit
   useEffect(() => {
     if (!isRunning) { setElapsed(0); return; }
     const start = Date.now();
@@ -72,14 +71,14 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
             Smart Contract Audit
             {isRunning && <span className="inline-flex h-2 w-2 rounded-full bg-mesh-accent animate-pulse" />}
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-mesh-muted mt-0.5">
             Multi-agent security analysis via decentralized P2P mesh
           </p>
         </div>
         {isRunning && (
           <div className="text-right animate-fade-in">
             <span className="text-xs text-mesh-accent font-mono">{elapsed}s</span>
-            <p className="text-[10px] text-gray-600">elapsed</p>
+            <p className="text-[10px] text-mesh-muted">elapsed</p>
           </div>
         )}
       </div>
@@ -101,7 +100,7 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
                         : 'bg-mesh-bg border border-mesh-border'
                   }`}>
                     <svg className={`w-3.5 h-3.5 transition-colors duration-500 ${
-                      isComplete ? 'text-mesh-green' : isCurrent ? 'text-mesh-accent' : 'text-gray-600'
+                      isComplete ? 'text-mesh-green' : isCurrent ? 'text-mesh-accent' : 'text-mesh-muted'
                     }`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       {isComplete ? (
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -114,7 +113,7 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
                     )}
                   </div>
                   <span className={`text-[9px] mt-1.5 font-medium transition-colors duration-500 ${
-                    isComplete ? 'text-mesh-green' : isCurrent ? 'text-mesh-accent-light' : 'text-gray-600'
+                    isComplete ? 'text-mesh-green' : isCurrent ? 'text-mesh-accent-light' : 'text-mesh-muted'
                   }`}>
                     {step.label}
                   </span>
@@ -141,13 +140,13 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
             disabled={isRunning}
             className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-300 relative ${
               mode === m
-                ? 'text-white bg-mesh-accent/10'
-                : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.02]'
+                ? 'text-mesh-accent-light bg-mesh-accent/10'
+                : 'text-mesh-muted hover:text-gray-300 hover:bg-white/[0.02]'
             } ${m === 'address' ? 'border-r border-mesh-border' : ''}`}
           >
             {m === 'address' ? 'Contract Address' : 'Paste Source Code'}
             {mode === m && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-mesh-accent to-mesh-cyan" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-mesh-accent to-mesh-accent-light" />
             )}
           </button>
         ))}
@@ -156,7 +155,7 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
       {/* Input */}
       {mode === 'address' ? (
         <div className="space-y-2">
-          <label className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">EVM Contract Address</label>
+          <label className="text-[11px] text-mesh-muted font-medium uppercase tracking-wide">EVM Contract Address</label>
           <div className="relative group">
             <input
               type="text"
@@ -166,14 +165,14 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
               disabled={isRunning}
               className="input-field group-hover:border-mesh-border-light"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-700 font-mono">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-mesh-muted-dim font-mono">
               {contractAddress.length > 0 ? `${contractAddress.length}/42` : ''}
             </div>
           </div>
         </div>
       ) : (
         <div className="space-y-2">
-          <label className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Solidity Source Code</label>
+          <label className="text-[11px] text-mesh-muted font-medium uppercase tracking-wide">Solidity Source Code</label>
           <textarea
             placeholder="// SPDX-License-Identifier: MIT&#10;pragma solidity ^0.8.0;&#10;&#10;contract MyContract {&#10;  ..."
             value={sourceCode}
@@ -183,7 +182,7 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
             className="input-field resize-none"
           />
           {sourceCode.length > 0 && (
-            <p className="text-[10px] text-gray-700 font-mono text-right">
+            <p className="text-[10px] text-mesh-muted-dim font-mono text-right">
               {sourceCode.length} chars | {sourceCode.split('\n').length} lines
             </p>
           )}
@@ -218,7 +217,7 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
       >
         {isRunning ? (
           <span className="flex items-center justify-center gap-3">
-            <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            <span className="w-4 h-4 border-2 border-mesh-bg/20 border-t-mesh-bg rounded-full animate-spin" />
             <span>Analyzing Contract...</span>
           </span>
         ) : (
@@ -233,7 +232,7 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
 
       {/* Status */}
       {auditStatus && auditStatus !== 'started' && (
-        <p className="text-xs text-center text-gray-500 animate-fade-in">
+        <p className="text-xs text-center text-mesh-muted animate-fade-in">
           Status: <span className="text-mesh-accent-light font-mono">{auditStatus}</span>
         </p>
       )}
@@ -245,8 +244,8 @@ export function AuditConsole({ onSubmit, auditStatus, error }: AuditConsoleProps
             <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
           </svg>
         </div>
-        <p className="text-[11px] text-gray-600 leading-relaxed">
-          <span className="text-gray-400 font-medium">4 specialized agents</span> (reentrancy, access control, logic, economic) analyze your contract
+        <p className="text-[11px] text-mesh-muted leading-relaxed">
+          <span className="font-medium" style={{ color: '#B8B2A4' }}>4 specialized agents</span> (reentrancy, access control, logic, economic) analyze your contract
           via the <span className="text-mesh-accent-light font-mono text-[10px]">Gensyn AXL</span> P2P mesh, then reach consensus with weighted voting.
           Results are attested on-chain.
         </p>

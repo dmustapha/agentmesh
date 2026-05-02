@@ -87,7 +87,7 @@ export interface AuditReport {
 }
 
 export interface AXLMessage {
-  type: 'contract' | 'finding' | 'vote' | 'consensus' | 'status';
+  type: 'contract' | 'finding' | 'vote' | 'consensus' | 'status' | 'analysis' | 'debate';
   payload: unknown;
   fromAgent: string;
   toAgent: string;

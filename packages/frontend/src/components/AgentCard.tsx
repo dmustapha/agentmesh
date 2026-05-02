@@ -1,12 +1,6 @@
 // File: packages/frontend/src/components/AgentCard.tsx
 import type { AgentNode } from '@agentmesh/shared';
-
-const SPECIALTY_CONFIG: Record<string, { color: string; bg: string; border: string; icon: string; glow: string }> = {
-  reentrancy: { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', icon: 'R', glow: 'rgba(239,68,68,0.15)' },
-  'access-control': { color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', icon: 'A', glow: 'rgba(59,130,246,0.15)' },
-  logic: { color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', icon: 'L', glow: 'rgba(234,179,8,0.15)' },
-  economic: { color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', icon: 'E', glow: 'rgba(34,197,94,0.15)' },
-};
+import { SPECIALTY_CONFIG } from '@/lib/agent-colors';
 
 const STATUS_INDICATORS: Record<string, { dot: string; label: string; active: boolean }> = {
   idle: { dot: 'bg-gray-500', label: 'Idle', active: false },
@@ -49,11 +43,11 @@ export function AgentCard({ agent }: { agent: AgentNode }) {
               <span className={`absolute inset-0 rounded-full ${status.dot} animate-ping opacity-40`} />
             )}
           </span>
-          <span className={`text-[11px] font-medium ${status.active ? 'text-gray-300' : 'text-gray-500'}`}>
+          <span className={`text-[11px] font-medium ${status.active ? 'text-gray-300' : 'text-mesh-muted'}`}>
             {status.label}
           </span>
-          <span className="text-[10px] text-gray-700 font-mono">|</span>
-          <span className="text-[11px] text-gray-600 capitalize font-mono">
+          <span className="text-[10px] text-mesh-muted-dim font-mono">|</span>
+          <span className="text-[11px] text-mesh-muted capitalize font-mono">
             {agent.specialty.replace('-', ' ')}
           </span>
         </div>
@@ -61,10 +55,10 @@ export function AgentCard({ agent }: { agent: AgentNode }) {
 
       {/* Peer ID with hover reveal */}
       <div className="hidden sm:flex flex-col items-end gap-0.5">
-        <span className="text-[9px] text-gray-700 font-mono opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+        <span className="text-[9px] text-mesh-muted-dim font-mono opacity-60 group-hover:opacity-100 transition-opacity duration-300">
           {agent.peerId.slice(0, 8)}
         </span>
-        <span className="text-[9px] text-gray-800 font-mono opacity-0 group-hover:opacity-60 transition-opacity duration-300">
+        <span className="text-[9px] text-mesh-muted-dim font-mono opacity-0 group-hover:opacity-60 transition-opacity duration-300">
           ...{agent.peerId.slice(-6)}
         </span>
       </div>

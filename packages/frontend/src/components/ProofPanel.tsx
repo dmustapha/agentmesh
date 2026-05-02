@@ -29,7 +29,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={copy}
-      className="text-[10px] text-gray-600 hover:text-mesh-accent transition-colors duration-300 font-mono"
+      className="text-[10px] text-mesh-muted-dim hover:text-mesh-accent transition-colors duration-300 font-mono"
     >
       {copied ? 'copied' : 'copy'}
     </button>
@@ -75,8 +75,8 @@ export function ProofPanel() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
           </svg>
         </div>
-        <p className="text-sm text-gray-400 font-medium">Could not load proof data</p>
-        <p className="text-xs text-gray-600 mt-1">Is the backend running on port 3001?</p>
+        <p className="text-sm text-mesh-muted font-medium">Could not load proof data</p>
+        <p className="text-xs text-mesh-muted-dim mt-1">Is the backend running on port 3001?</p>
       </div>
     );
   }
@@ -108,11 +108,11 @@ export function ProofPanel() {
                   </div>
                   <div>
                     <span className={`text-sm font-semibold ${spec.text}`}>{a.name}</span>
-                    <p className="text-[10px] text-gray-600 capitalize mt-0.5">{a.specialty.replace('-', ' ')}</p>
+                    <p className="text-[10px] text-mesh-muted-dim capitalize mt-0.5">{a.specialty.replace('-', ' ')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono text-gray-600">
+                  <span className="text-[10px] font-mono text-mesh-muted-dim">
                     {a.peerId.slice(0, 12)}...{a.peerId.slice(-6)}
                   </span>
                   <CopyButton text={a.peerId} />
@@ -142,7 +142,7 @@ export function ProofPanel() {
               style={{ animationDelay: `${i * 100 + 400}ms`, animationFillMode: 'both' }}
             >
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-gray-500 font-medium">{label}</p>
+                <p className="text-xs text-mesh-muted font-medium">{label}</p>
                 <CopyButton text={address} />
               </div>
               <a
@@ -179,11 +179,11 @@ export function ProofPanel() {
                   <p className={`text-sm font-semibold capitalize ${spec.text}`}>
                     {specialty.replace('-', ' ')}
                   </p>
-                  <span className="text-[10px] text-gray-600 font-mono">
+                  <span className="text-[10px] text-mesh-muted-dim font-mono">
                     {data.peers.length} peer{data.peers.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <p className="text-[9px] font-mono text-gray-700 mt-2 truncate">
+                <p className="text-[9px] font-mono text-mesh-muted-dim mt-2 truncate">
                   {data.peerId}
                 </p>
               </div>
@@ -203,16 +203,16 @@ export function ProofPanel() {
           </h3>
           <div className="glass-card p-4 space-y-3">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-500">Network</span>
-              <span className="text-gray-300 font-mono text-xs">{proof.ens.network}</span>
+              <span className="text-mesh-muted">Network</span>
+              <span className="text-mesh-muted-dim font-mono text-xs">{proof.ens.network}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-500">Parent Name</span>
+              <span className="text-mesh-muted">Parent Name</span>
               <span className="text-mesh-accent font-mono text-xs">{proof.ens.parentName}</span>
             </div>
             {proof.ens.subnames.length > 0 && (
               <div className="pt-3 border-t border-mesh-border/50">
-                <p className="text-[10px] text-gray-600 mb-2 font-medium uppercase tracking-wide">Subnames (ENSIP-25)</p>
+                <p className="text-[10px] text-mesh-muted-dim mb-2 font-medium uppercase tracking-wide">Subnames (ENSIP-25)</p>
                 <div className="flex flex-wrap gap-2">
                   {proof.ens.subnames.map((sn) => (
                     <span

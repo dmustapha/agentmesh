@@ -34,18 +34,18 @@ export const ZG_COMPUTE_MODEL_TESTNET = 'qwen-2.5-7b-instruct';
 export const ZG_COMPUTE_MODEL_MAINNET = 'deepseek-chat-v3-0324';
 
 // 0G Storage
-export const ZG_STORAGE_INDEXER = 'https://indexer-testnet.0g.ai';
+export const ZG_STORAGE_INDEXER = 'https://indexer-storage-testnet-turbo.0g.ai';
 export const ZG_STORAGE_RPC = 'https://evmrpc-testnet.0g.ai';
 
-// ENS Sepolia
-export const ENS_SEPOLIA_RPC = process.env.SEPOLIA_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/demo';
+// ENS Sepolia — defaults only, overridden by backend env vars at runtime
+export const ENS_SEPOLIA_RPC = 'https://eth-sepolia.g.alchemy.com/v2/demo';
 export const ENS_REGISTRY = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
 export const ENS_PUBLIC_RESOLVER = '0xE99638b40E4Fff0129D56f03b55b6bbC4BBE49b5';
 export const ENS_NAME_WRAPPER = '0x0635513f179D50A207757E05759CbD106d7dFcE8';
 
-// Contract addresses (populated after deployment)
-export const AGENT_REGISTRY_ADDRESS = process.env.AGENT_REGISTRY_ADDRESS || '';
-export const AUDIT_ATTESTATION_ADDRESS = process.env.AUDIT_ATTESTATION_ADDRESS || '';
+// Contract addresses — defaults only, overridden by backend env vars at runtime
+export const AGENT_REGISTRY_ADDRESS = '';
+export const AUDIT_ATTESTATION_ADDRESS = '';
 
 // Backend
 export const BACKEND_PORT = 3001;
@@ -57,4 +57,4 @@ export const CONSENSUS_CRITICAL_CONFIDENCE = 0.9; // Single agent can flag CRITI
 export const MAX_AUDIT_DURATION_MS = 120_000; // 2 minutes max
 
 // Etherscan
-export const ETHERSCAN_API = 'https://api.etherscan.io/api';
+export const ETHERSCAN_API = 'https://api.etherscan.io/v2/api?chainid=1';

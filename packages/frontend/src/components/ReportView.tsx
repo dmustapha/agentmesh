@@ -1,7 +1,7 @@
 // File: packages/frontend/src/components/ReportView.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { AuditReport, Severity } from '@agentmesh/shared';
 
 const SEV_CONFIG: Record<Severity, { bg: string; text: string; border: string; badge: string; glow: string }> = {
@@ -14,22 +14,26 @@ const SEV_CONFIG: Record<Severity, { bg: string; text: string; border: string; b
 
 function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number }) {
   const [display, setDisplay] = useState(0);
+  const rafRef = useRef<number>(0);
   useEffect(() => {
     const timer = setTimeout(() => {
-      let start = 0;
       const duration = 600;
       const startTime = Date.now();
       const animate = () => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-        start = Math.round(eased * value);
-        setDisplay(start);
-        if (progress < 1) requestAnimationFrame(animate);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setDisplay(Math.round(eased * value));
+        if (progress < 1) {
+          rafRef.current = requestAnimationFrame(animate);
+        }
       };
       animate();
     }, delay);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      cancelAnimationFrame(rafRef.current);
+    };
   }, [value, delay]);
   return <span className="number-counter">{display}</span>;
 }
@@ -50,19 +54,19 @@ export function ReportView({ report }: { report: AuditReport }) {
       <div className="glass-card p-6 animate-fade-in">
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h2 className="text-lg font-serif font-semibold text-white flex items-center gap-2">
               Security Audit Report
               <svg className="w-4 h-4 text-mesh-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </h2>
-            <p className="text-[11px] text-gray-600 mt-1 font-mono">ID: {report.id}</p>
+            <p className="text-[11px] text-mesh-muted-dim mt-1 font-mono">ID: {report.id}</p>
           </div>
           <div className="text-right space-y-1">
             <div className="flex items-center gap-2 justify-end">
               <div className="w-16 h-1.5 rounded-full bg-mesh-border overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-mesh-accent to-mesh-cyan transition-all duration-1000"
+                  className="h-full rounded-full bg-gradient-to-r from-mesh-accent to-mesh-accent-light transition-all duration-1000"
                   style={{ width: `${consensus.agreementRatio * 100}%` }}
                 />
               </div>
@@ -70,13 +74,13 @@ export function ReportView({ report }: { report: AuditReport }) {
                 {(consensus.agreementRatio * 100).toFixed(0)}%
               </span>
             </div>
-            <p className="text-[11px] text-gray-600 font-mono">
+            <p className="text-[11px] text-mesh-muted-dim font-mono">
               {consensus.totalAgents} agents | {(report.duration / 1000).toFixed(1)}s
             </p>
           </div>
         </div>
 
-        {/* Severity Summary — animated counters */}
+        {/* Severity Summary */}
         <div className="grid grid-cols-4 gap-3">
           {([
             { key: 'CRITICAL' as const, label: 'Critical', color: 'text-red-400', bgColor: 'bg-red-500/8', borderColor: 'border-red-500/15' },
@@ -92,7 +96,7 @@ export function ReportView({ report }: { report: AuditReport }) {
               <p className={`text-2xl font-bold ${color} font-mono`}>
                 <AnimatedNumber value={sevCounts[key]} delay={i * 100 + 200} />
               </p>
-              <p className="text-[10px] text-gray-500 mt-0.5 font-medium">{label}</p>
+              <p className="text-[10px] text-mesh-muted mt-0.5 font-medium">{label}</p>
             </div>
           ))}
         </div>
@@ -101,13 +105,13 @@ export function ReportView({ report }: { report: AuditReport }) {
         <div className="mt-5 pt-4 border-t border-mesh-border/50 space-y-2.5">
           {consensus.storageRootHash && consensus.storageRootHash !== 'STORAGE_UNAVAILABLE' && (
             <div className="flex items-center gap-2 text-xs animate-slide-in-right" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
-              <div className="w-5 h-5 rounded-md bg-mesh-cyan/10 flex items-center justify-center flex-shrink-0">
-                <svg className="w-3 h-3 text-mesh-cyan" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="w-5 h-5 rounded-md bg-mesh-accent/10 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 text-mesh-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375" />
                 </svg>
               </div>
-              <span className="text-gray-600">0G Storage:</span>
-              <span className="font-mono text-gray-400">{consensus.storageRootHash.slice(0, 24)}...</span>
+              <span className="text-mesh-muted">0G Storage:</span>
+              <span className="font-mono text-mesh-muted-dim">{consensus.storageRootHash.slice(0, 24)}...</span>
             </div>
           )}
           {consensus.attestationTxHash && consensus.attestationTxHash !== 'ATTESTATION_UNAVAILABLE' && (
@@ -117,7 +121,7 @@ export function ReportView({ report }: { report: AuditReport }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <span className="text-gray-600">Attestation:</span>
+              <span className="text-mesh-muted">Attestation:</span>
               <a
                 href={`https://chainscan-galileo.0g.ai/tx/${consensus.attestationTxHash}`}
                 target="_blank"
@@ -149,13 +153,13 @@ export function ReportView({ report }: { report: AuditReport }) {
                 <h3 className="text-sm font-semibold text-white">{cf.finding.title}</h3>
                 <span className={sev.badge}>{cf.finalSeverity}</span>
               </div>
-              <p className="text-[13px] text-gray-400 leading-relaxed mb-3">{cf.finding.description}</p>
+              <p className="text-[13px] text-mesh-muted leading-relaxed mb-3">{cf.finding.description}</p>
               {cf.finding.evidence && (
-                <pre className="text-xs bg-mesh-bg/80 rounded-xl p-3.5 overflow-x-auto mb-3 border border-mesh-border/50 font-mono text-gray-500 leading-relaxed">
+                <pre className="text-xs bg-mesh-bg/80 rounded-xl p-3.5 overflow-x-auto mb-3 border border-mesh-border/50 font-mono text-mesh-muted-dim leading-relaxed">
                   {cf.finding.evidence}
                 </pre>
               )}
-              <div className="flex items-center gap-4 text-[11px] text-gray-600">
+              <div className="flex items-center gap-4 text-[11px] text-mesh-muted">
                 <span className="flex items-center gap-1.5">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -169,7 +173,7 @@ export function ReportView({ report }: { report: AuditReport }) {
                   {(cf.consensusConfidence * 100).toFixed(0)}% confidence
                 </span>
                 {cf.finding.lineNumbers && (
-                  <span className="font-mono text-gray-700">Lines: {cf.finding.lineNumbers}</span>
+                  <span className="font-mono text-mesh-muted-dim">Lines: {cf.finding.lineNumbers}</span>
                 )}
               </div>
             </div>
@@ -183,8 +187,8 @@ export function ReportView({ report }: { report: AuditReport }) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-gray-400 font-medium">No vulnerabilities detected</p>
-            <p className="text-xs text-gray-600 mt-1">All {consensus.totalAgents} agents completed analysis</p>
+            <p className="text-mesh-muted font-medium">No vulnerabilities detected</p>
+            <p className="text-xs text-mesh-muted-dim mt-1">All {consensus.totalAgents} agents completed analysis</p>
           </div>
         )}
       </div>

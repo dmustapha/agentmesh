@@ -46,7 +46,7 @@ export default function ReportPage({ params }: { params: { id: string } }) {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">Audit Report</h1>
-                <p className="text-[11px] text-gray-600 font-mono mt-0.5">{params.id}</p>
+                <p className="text-[11px] text-mesh-muted-dim font-mono mt-0.5">{params.id}</p>
               </div>
             </div>
           </div>
@@ -64,12 +64,12 @@ export default function ReportPage({ params }: { params: { id: string } }) {
         {!loading && !report && (
           <div className="glass-card p-12 text-center animate-fade-in">
             <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-mesh-red/10 border border-mesh-red/20 flex items-center justify-center">
-              <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <svg className="w-6 h-6 text-mesh-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <p className="text-gray-400 font-medium">Report not found</p>
-            <p className="text-xs text-gray-600 mt-1">The report may have expired or the backend may be offline.</p>
+            <p className="text-mesh-muted font-medium">Report not found</p>
+            <p className="text-xs text-mesh-muted-dim mt-1">The report may have expired or the backend may be offline.</p>
           </div>
         )}
         {!loading && report && <ReportView report={report} />}

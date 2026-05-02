@@ -20,7 +20,7 @@ export default function ProofPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">Integration Proof</h1>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-mesh-muted mt-0.5">
                   Verifiable evidence of deep integration with Gensyn AXL, ENS, and 0G Labs
                 </p>
               </div>

@@ -1,22 +1,16 @@
 // File: packages/frontend/src/components/TopologyGraph.tsx
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import * as d3 from 'd3';
 import type { AgentNode, AXLMessage } from '@agentmesh/shared';
+import { SPECIALTY_COLORS } from '@/lib/agent-colors';
 
 interface TopologyGraphProps {
   agents: AgentNode[];
   topology: Record<string, { peerId: string; peers: string[] }>;
   messages?: AXLMessage[];
 }
-
-const SPECIALTY_COLORS: Record<string, string> = {
-  reentrancy: '#ef4444',
-  'access-control': '#3b82f6',
-  logic: '#eab308',
-  economic: '#22c55e',
-};
 
 const SPECIALTY_ICONS: Record<string, string> = {
   reentrancy: 'R',
@@ -27,39 +21,40 @@ const SPECIALTY_ICONS: Record<string, string> = {
 
 export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const animFrameRef = useRef<number>(0);
 
   const render = useCallback(() => {
     if (!svgRef.current || agents.length === 0) return;
 
-    // Cancel previous animation frame
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
+    // Use viewBox for responsive scaling — aspect ratio 3:2
     const width = 720;
     const height = 480;
-    svg.attr('viewBox', `0 0 ${width} ${height}`);
+    svg.attr('viewBox', `0 0 ${width} ${height}`).attr('preserveAspectRatio', 'xMidYMid meet');
 
     const defs = svg.append('defs');
 
-    // ── Gradient definitions ──
+    // Center glow — gold
     const radialGrad = defs.append('radialGradient')
       .attr('id', 'center-glow')
       .attr('cx', '50%').attr('cy', '50%').attr('r', '50%');
-    radialGrad.append('stop').attr('offset', '0%').attr('stop-color', '#6366f1').attr('stop-opacity', 0.12);
-    radialGrad.append('stop').attr('offset', '60%').attr('stop-color', '#6366f1').attr('stop-opacity', 0.03);
-    radialGrad.append('stop').attr('offset', '100%').attr('stop-color', '#6366f1').attr('stop-opacity', 0);
+    radialGrad.append('stop').attr('offset', '0%').attr('stop-color', '#D4A853').attr('stop-opacity', 0.08);
+    radialGrad.append('stop').attr('offset', '60%').attr('stop-color', '#D4A853').attr('stop-opacity', 0.02);
+    radialGrad.append('stop').attr('offset', '100%').attr('stop-color', '#D4A853').attr('stop-opacity', 0);
 
-    // Secondary glow
+    // Secondary glow — purple
     const radialGrad2 = defs.append('radialGradient')
       .attr('id', 'center-glow-2')
       .attr('cx', '50%').attr('cy', '50%').attr('r', '40%');
-    radialGrad2.append('stop').attr('offset', '0%').attr('stop-color', '#06b6d4').attr('stop-opacity', 0.06);
-    radialGrad2.append('stop').attr('offset', '100%').attr('stop-color', '#06b6d4').attr('stop-opacity', 0);
+    radialGrad2.append('stop').attr('offset', '0%').attr('stop-color', '#7850C8').attr('stop-opacity', 0.05);
+    radialGrad2.append('stop').attr('offset', '100%').attr('stop-color', '#7850C8').attr('stop-opacity', 0);
 
-    // Node glow filters
+    // Node glow filters per specialty
     for (const [specialty, color] of Object.entries(SPECIALTY_COLORS)) {
       const filter = defs.append('filter')
         .attr('id', `glow-${specialty}`)
@@ -70,7 +65,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
       filter.append('feComposite').attr('in', 'color').attr('in2', 'blur').attr('operator', 'in').attr('result', 'glow');
       const merge = filter.append('feMerge');
       merge.append('feMergeNode').attr('in', 'glow');
-      merge.append('feMergeNode').attr('in', 'glow'); // Double glow
+      merge.append('feMergeNode').attr('in', 'glow');
       merge.append('feMergeNode').attr('in', 'SourceGraphic');
     }
 
@@ -81,8 +76,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
     lineM.append('feMergeNode').attr('in', 'blur');
     lineM.append('feMergeNode').attr('in', 'SourceGraphic');
 
-    // ── Background layers ──
-    // Animated breathing center glow
+    // Background layers
     const bgGroup = svg.append('g').attr('class', 'bg-layer');
     bgGroup.append('circle')
       .attr('cx', width / 2).attr('cy', height / 2).attr('r', 180)
@@ -91,11 +85,11 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
       .attr('cx', width / 2 + 30).attr('cy', height / 2 - 20).attr('r', 140)
       .attr('fill', 'url(#center-glow-2)');
 
-    // Orbital ring
+    // Orbital rings — gold/purple
     bgGroup.append('circle')
       .attr('cx', width / 2).attr('cy', height / 2).attr('r', 155)
       .attr('fill', 'none')
-      .attr('stroke', '#6366f1')
+      .attr('stroke', '#D4A853')
       .attr('stroke-width', 0.5)
       .attr('stroke-dasharray', '2,8')
       .attr('opacity', 0.15);
@@ -103,12 +97,12 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
     bgGroup.append('circle')
       .attr('cx', width / 2).attr('cy', height / 2).attr('r', 100)
       .attr('fill', 'none')
-      .attr('stroke', '#06b6d4')
+      .attr('stroke', '#7850C8')
       .attr('stroke-width', 0.5)
       .attr('stroke-dasharray', '1,12')
       .attr('opacity', 0.1);
 
-    // ── Compute node positions ──
+    // Compute node positions
     const nodes = agents.map((a, i) => ({
       id: a.peerId,
       agentId: a.id,
@@ -128,7 +122,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
       nodes.filter((n) => recentSenderIds.has(n.agentId)).map((n) => n.id),
     );
 
-    // ── Build links ──
+    // Build links
     const links: Array<{ source: string; target: string }> = [];
     const linkSet = new Set<string>();
     const nodeIds = new Set(nodes.map((n) => n.id));
@@ -151,7 +145,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
       }
     }
 
-    // ── Draw links with animated data flow ──
+    // Draw links with data flow
     const linkGroup = svg.append('g').attr('class', 'links');
 
     links.forEach((link, idx) => {
@@ -161,24 +155,21 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
 
       const isActive = activePeerIds.has(link.source) || activePeerIds.has(link.target);
 
-      // Base line
       linkGroup.append('line')
         .attr('x1', src.x).attr('y1', src.y)
         .attr('x2', tgt.x).attr('y2', tgt.y)
-        .attr('stroke', isActive ? '#6366f1' : '#1a1a2e')
+        .attr('stroke', isActive ? '#D4A853' : '#2A2540')
         .attr('stroke-width', isActive ? 1.5 : 0.5)
         .attr('stroke-dasharray', isActive ? '' : '4,6')
         .attr('opacity', isActive ? 0.6 : 0.3)
         .attr('filter', isActive ? 'url(#line-glow)' : null);
 
-      // Animated data flow particle (small circle moving along link)
       if (isActive) {
         const particle = linkGroup.append('circle')
           .attr('r', 2)
-          .attr('fill', '#818cf8')
+          .attr('fill', '#F0C060')
           .attr('opacity', 0.8);
 
-        // Animate particle along the link
         const animateParticle = () => {
           particle
             .attr('cx', src.x).attr('cy', src.y).attr('opacity', 0)
@@ -199,11 +190,11 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
       }
     });
 
-    // ── Draw nodes ──
+    // Draw nodes
     const nodeGroup = svg.append('g').attr('class', 'nodes');
 
     nodes.forEach((node, i) => {
-      const color = SPECIALTY_COLORS[node.specialty] || '#6366f1';
+      const color = SPECIALTY_COLORS[node.specialty] || '#D4A853';
       const isActive = node.status !== 'idle';
       const isComm = activePeerIds.has(node.id);
       const g = nodeGroup.append('g')
@@ -211,7 +202,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
         .attr('class', 'node-group')
         .style('cursor', 'pointer');
 
-      // Outer pulse ring (animated)
+      // Outer pulse ring
       if (isActive || isComm) {
         g.append('circle')
           .attr('r', 36)
@@ -232,7 +223,6 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
           .attr('dur', '2s')
           .attr('repeatCount', 'indefinite');
 
-        // Second ring offset
         const ring2 = g.append('circle')
           .attr('r', 28)
           .attr('fill', 'none')
@@ -254,6 +244,14 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
           .attr('begin', '1s')
           .attr('repeatCount', 'indefinite');
       }
+
+      // Halo ring
+      g.append('circle')
+        .attr('r', 36)
+        .attr('fill', 'none')
+        .attr('stroke', color)
+        .attr('stroke-width', 12)
+        .attr('opacity', 0.08);
 
       // Dashed orbit ring
       g.append('circle')
@@ -294,7 +292,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
       g.append('text')
         .attr('text-anchor', 'middle')
         .attr('dy', 46)
-        .attr('fill', '#e2e8f0')
+        .attr('fill', '#EDE8DE')
         .attr('font-size', 11)
         .attr('font-weight', '600')
         .attr('font-family', 'var(--font-inter), sans-serif')
@@ -304,7 +302,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
       g.append('text')
         .attr('text-anchor', 'middle')
         .attr('dy', 60)
-        .attr('fill', isActive ? color : '#475569')
+        .attr('fill', isActive ? color : '#6E6A7A')
         .attr('font-size', 8)
         .attr('font-weight', '500')
         .attr('font-family', 'var(--font-mono), monospace')
@@ -322,15 +320,15 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
         .attr('transform', `translate(${node.x}, ${node.y}) scale(1)`);
     });
 
-    // ── Center hub ──
+    // Center hub
     const centerGroup = svg.append('g')
       .attr('transform', `translate(${width / 2}, ${height / 2})`);
 
-    // Rotating dashed ring
+    // Rotating dashed ring — gold
     centerGroup.append('circle')
       .attr('r', 40)
       .attr('fill', 'none')
-      .attr('stroke', '#6366f1')
+      .attr('stroke', '#D4A853')
       .attr('stroke-width', 0.5)
       .attr('stroke-dasharray', '2,6')
       .attr('opacity', 0.2)
@@ -344,7 +342,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
     centerGroup.append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', -4)
-      .attr('fill', '#6366f1')
+      .attr('fill', '#D4A853')
       .attr('font-size', 9)
       .attr('font-weight', '700')
       .attr('font-family', 'var(--font-mono), monospace')
@@ -354,7 +352,7 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
     centerGroup.append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', 10)
-      .attr('fill', '#334155')
+      .attr('fill', '#6E6A7A')
       .attr('font-size', 7)
       .attr('font-family', 'var(--font-mono), monospace')
       .attr('letter-spacing', '1')
@@ -377,22 +375,24 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
             Mesh Topology
             <span className="inline-flex h-1.5 w-1.5 rounded-full bg-mesh-green animate-pulse" />
           </h2>
-          <p className="text-[11px] text-gray-600 mt-0.5 font-mono">Real-time P2P agent network</p>
+          <p className="text-[11px] text-mesh-muted mt-0.5 font-mono">Real-time P2P agent network</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-mesh-bg/50 border border-mesh-border/50">
             <span className="w-1.5 h-1.5 rounded-full bg-mesh-green" />
-            <span className="text-[10px] text-gray-500 font-mono">{agents.length} nodes</span>
+            <span className="text-[10px] text-mesh-muted font-mono">{agents.length} nodes</span>
           </div>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-mesh-bg/50 border border-mesh-border/50">
-            <span className="text-[10px] text-gray-600 font-mono">
+            <span className="text-[10px] text-mesh-muted font-mono">
               {Object.values(topology).reduce((acc, t) => acc + (t.peers?.length || 0), 0)} links
             </span>
           </div>
         </div>
       </div>
 
-      <svg ref={svgRef} className="w-full relative z-10" style={{ maxHeight: 480 }} />
+      <div ref={containerRef} className="w-full relative z-10">
+        <svg ref={svgRef} className="w-full h-auto" />
+      </div>
 
       {/* Legend bar */}
       <div className="px-5 pb-4 flex items-center justify-between relative z-10">
@@ -403,13 +403,13 @@ export function TopologyGraph({ agents, topology, messages = [] }: TopologyGraph
                 className="w-2.5 h-2.5 rounded-full transition-transform duration-300 group-hover:scale-125"
                 style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}40` }}
               />
-              <span className="text-[10px] text-gray-600 capitalize group-hover:text-gray-400 transition-colors duration-300">
+              <span className="text-[10px] text-mesh-muted capitalize group-hover:text-gray-400 transition-colors duration-300">
                 {name.replace('-', ' ')}
               </span>
             </div>
           ))}
         </div>
-        <span className="text-[9px] text-gray-700 font-mono">
+        <span className="text-[9px] text-mesh-muted-dim font-mono">
           {messages.filter((m) => Date.now() - m.timestamp < 5000).length > 0 ? 'TRANSMITTING' : 'STANDBY'}
         </span>
       </div>

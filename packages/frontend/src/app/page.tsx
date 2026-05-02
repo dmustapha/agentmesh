@@ -8,6 +8,7 @@ import { AgentCard } from '@/components/AgentCard';
 import { ChatFeed } from '@/components/ChatFeed';
 import { ReportView } from '@/components/ReportView';
 import { Nav } from '@/components/Nav';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAgents } from '@/hooks/useAgents';
 import { useAudit } from '@/hooks/useAudit';
@@ -38,7 +39,7 @@ export default function Home() {
         {/* Multi-layer gradient background */}
         <div className="absolute inset-0 bg-mesh-gradient" />
         <div className="absolute inset-0 bg-mesh-gradient-2" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-mesh-accent/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 gold-line" />
 
         <div className="relative max-w-7xl mx-auto px-6 py-10">
           <div className="flex items-start justify-between">
@@ -48,13 +49,13 @@ export default function Home() {
                   <span className="text-[10px] text-mesh-accent-light font-semibold uppercase tracking-wider">Decentralized Security</span>
                 </div>
                 <div className="h-4 w-px bg-mesh-border" />
-                <span className="text-[10px] text-gray-600 font-mono">v1.0</span>
+                <span className="text-[10px] text-mesh-muted font-mono">v1.0</span>
               </div>
 
-              <h1 className="text-5xl font-bold tracking-tight mb-3">
-                <span className="text-gradient">AgentMesh</span>
+              <h1 className="text-5xl font-serif font-bold tracking-tight mb-3">
+                <span className="text-mesh-accent-light" style={{ textShadow: '0 0 40px rgba(212,168,83,0.3)' }}>AgentMesh</span>
               </h1>
-              <p className="text-base text-gray-400 max-w-xl leading-relaxed">
+              <p className="text-base text-mesh-muted max-w-xl leading-relaxed" style={{ color: '#B8B2A4' }}>
                 Decentralized AI agent infrastructure for smart contract security.
                 P2P communication, on-chain attestations, multi-agent consensus.
               </p>
@@ -66,7 +67,7 @@ export default function Home() {
                     <span className="absolute inset-0 rounded-full bg-mesh-red animate-ping opacity-30" />
                   </span>
                   <span className="text-red-400 font-semibold text-sm font-mono">$3.8B</span>
-                  <span className="text-gray-600 text-xs">lost to exploits</span>
+                  <span className="text-mesh-muted text-xs">lost to exploits</span>
                 </div>
                 <div className="h-4 w-px bg-mesh-border" />
                 <div className="flex items-center gap-2">
@@ -74,24 +75,24 @@ export default function Home() {
                     {connected && <span className="absolute inset-0 rounded-full bg-mesh-green animate-ping opacity-30" />}
                   </span>
                   <span className="text-green-400 font-semibold text-sm font-mono">{agents.length}</span>
-                  <span className="text-gray-600 text-xs">agents online</span>
+                  <span className="text-mesh-muted text-xs">agents online</span>
                 </div>
                 <div className="h-4 w-px bg-mesh-border" />
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-mesh-accent" />
                   <span className="text-mesh-accent-light font-semibold text-sm font-mono">P2P</span>
-                  <span className="text-gray-600 text-xs">Gensyn AXL mesh</span>
+                  <span className="text-mesh-muted text-xs">Gensyn AXL mesh</span>
                 </div>
               </div>
             </div>
 
             {/* Sponsor Badges */}
             <div className="hidden lg:flex flex-col items-end gap-2 animate-fade-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
-              <span className="text-[9px] text-gray-700 uppercase tracking-wider font-medium mb-1">Powered By</span>
+              <span className="text-[9px] text-mesh-muted uppercase tracking-wider font-medium mb-1">Powered By</span>
               {['Gensyn AXL', 'ENS', '0G Labs'].map((name, i) => (
                 <span
                   key={name}
-                  className="px-3 py-1.5 rounded-lg bg-mesh-card/60 backdrop-blur-sm border border-mesh-border/50 text-[11px] text-gray-400 font-medium hover:border-mesh-border-light hover:text-gray-300 transition-all duration-300 animate-slide-up"
+                  className="px-3 py-1.5 rounded-lg bg-mesh-card/60 backdrop-blur-sm border border-mesh-border/50 text-[11px] text-mesh-muted font-medium hover:border-mesh-accent/30 hover:text-mesh-accent-light transition-all duration-300 animate-slide-up"
                   style={{ animationDelay: `${i * 100 + 400}ms`, animationFillMode: 'both' }}
                 >
                   {name}
@@ -111,8 +112,8 @@ export default function Home() {
               onClick={() => setActiveTab(key)}
               className={`relative px-5 py-2.5 text-sm font-medium rounded-t-xl transition-all duration-300 flex items-center gap-2 ${
                 activeTab === key
-                  ? 'bg-mesh-card/80 backdrop-blur-sm border border-mesh-border border-b-transparent text-white -mb-px z-10'
-                  : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.02]'
+                  ? 'bg-mesh-card/80 backdrop-blur-sm border border-mesh-border border-b-transparent text-mesh-accent-light -mb-px z-10'
+                  : 'text-mesh-muted hover:text-gray-300 hover:bg-white/[0.02]'
               }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -129,6 +130,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-6">
+        <ErrorBoundary>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Primary Panel */}
           <div className="lg:col-span-8 animate-fade-in">
@@ -142,12 +144,12 @@ export default function Home() {
             {activeTab === 'report' && !report && (
               <div className="glass-card p-12 text-center animate-fade-in">
                 <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-mesh-accent/5 border border-mesh-border flex items-center justify-center">
-                  <svg className="w-7 h-7 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                  <svg className="w-7 h-7 text-mesh-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <p className="text-gray-500 text-sm font-medium">No audit report yet</p>
-                <p className="text-gray-700 text-xs mt-1">Submit a contract to begin analysis</p>
+                <p className="text-mesh-muted text-sm font-medium">No audit report yet</p>
+                <p className="text-mesh-muted-dim text-xs mt-1">Submit a contract to begin analysis</p>
                 <button
                   onClick={() => setActiveTab('audit')}
                   className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-mesh-accent hover:text-mesh-accent-light hover:bg-mesh-accent/5 transition-all duration-300 border border-mesh-accent/20 hover:border-mesh-accent/40"
@@ -170,7 +172,7 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                 </svg>
                 Agents
-                <span className="text-[10px] text-gray-600 font-mono ml-auto normal-case tracking-normal">{agents.length} active</span>
+                <span className="text-[10px] text-mesh-muted font-mono ml-auto normal-case tracking-normal">{agents.length} active</span>
               </h2>
               <div className="space-y-2">
                 {agents.map((agent, i) => (
@@ -185,7 +187,7 @@ export default function Home() {
                       <span className="w-1.5 h-1.5 rounded-full bg-mesh-accent animate-pulse" style={{ animationDelay: '200ms' }} />
                       <span className="w-1.5 h-1.5 rounded-full bg-mesh-accent animate-pulse" style={{ animationDelay: '400ms' }} />
                     </div>
-                    <p className="text-gray-600 text-xs mt-3">Discovering agents on mesh...</p>
+                    <p className="text-mesh-muted text-xs mt-3">Discovering agents on mesh...</p>
                   </div>
                 )}
               </div>
@@ -227,7 +229,7 @@ export default function Home() {
                         <span className="text-white font-medium">{f.title}</span>
                         <span className={`badge-${f.severity.toLowerCase()}`}>{f.severity}</span>
                       </div>
-                      <p className="text-gray-500 mt-0.5 truncate">{f.description}</p>
+                      <p className="text-mesh-muted mt-0.5 truncate">{f.description}</p>
                     </div>
                   ))}
                 </div>
@@ -235,6 +237,7 @@ export default function Home() {
             )}
           </aside>
         </div>
+        </ErrorBoundary>
       </main>
     </div>
   );

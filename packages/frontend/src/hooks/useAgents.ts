@@ -21,14 +21,20 @@ export function useAgents(events: WSEvent[]) {
     if (!lastEvent) return;
 
     if (lastEvent.type === 'agent:status') {
-      const updated = lastEvent.data as AgentNode;
-      setAgents((prev) =>
-        prev.map((a) => (a.id === updated.id ? updated : a)),
-      );
+      const data = lastEvent.data;
+      if (data && typeof data === 'object' && 'id' in data && 'specialty' in data) {
+        const updated = data as AgentNode;
+        setAgents((prev) =>
+          prev.map((a) => (a.id === updated.id ? updated : a)),
+        );
+      }
     }
 
     if (lastEvent.type === 'topology:update') {
-      setTopology(lastEvent.data as Record<string, { peerId: string; peers: string[] }>);
+      const data = lastEvent.data;
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        setTopology(data as Record<string, { peerId: string; peers: string[] }>);
+      }
     }
   }, [events]);
 
