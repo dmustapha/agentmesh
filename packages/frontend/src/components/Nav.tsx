@@ -1,6 +1,7 @@
 // File: packages/frontend/src/components/Nav.tsx
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -29,17 +30,8 @@ export function Nav({ connected: connectedProp }: { connected?: boolean }) {
     <nav className="border-b border-mesh-border/60 bg-mesh-bg/60 backdrop-blur-xl sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            {/* Gold logo mark */}
-            <div className="relative w-8 h-8">
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-mesh-accent to-mesh-accent-dim opacity-80 group-hover:opacity-100 transition-opacity duration-300 animate-breathe-slow" />
-              <div className="relative w-full h-full rounded-lg flex items-center justify-center">
-                <span className="text-mesh-bg text-xs font-bold tracking-tight">AM</span>
-              </div>
-            </div>
-            <span className="text-sm font-serif font-semibold text-mesh-accent-light group-hover:text-mesh-accent-bright transition-colors duration-300">
-              AgentMesh
-            </span>
+          <Link href="/" className="flex items-center group">
+            <Image src="/logo.svg" alt="AgentMesh" width={160} height={32} priority />
           </Link>
 
           <div className="flex items-center gap-0.5">
