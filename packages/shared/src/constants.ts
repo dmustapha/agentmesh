@@ -28,8 +28,8 @@ export const ZG_EXPLORER = 'https://chainscan-galileo.0g.ai';
 export const ZG_FAUCET = 'https://faucet.0g.ai';
 
 // 0G Compute
-export const ZG_COMPUTE_RPC = 'https://evmrpc.0g.ai'; // Mainnet for compute broker
-export const ZG_COMPUTE_CHAIN_ID = 16661;
+export const ZG_COMPUTE_RPC = 'https://evmrpc-testnet.0g.ai';
+export const ZG_COMPUTE_CHAIN_ID = 16602;
 export const ZG_COMPUTE_MODEL_TESTNET = 'qwen-2.5-7b-instruct';
 export const ZG_COMPUTE_MODEL_MAINNET = 'deepseek-chat-v3-0324';
 

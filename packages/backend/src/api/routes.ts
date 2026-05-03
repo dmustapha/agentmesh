@@ -127,7 +127,7 @@ export function createRoutes(manager: AgentManager): Router {
       // If address provided, fetch source from Etherscan
       if (contractAddress && !sourceCode) {
         const apiKey = process.env.ETHERSCAN_API_KEY || '';
-        const url = `${ETHERSCAN_API}?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey}`;
+        const url = `${ETHERSCAN_API}&module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey}`;
         const ethRes = await fetch(url);
         const ethData = await ethRes.json() as { status: string; result: Array<{ SourceCode: string }> };
 
