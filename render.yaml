@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: agentmesh-api
+    runtime: docker
+    dockerfilePath: packages/backend/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: KEYS_DIR
+        value: /app/keys
