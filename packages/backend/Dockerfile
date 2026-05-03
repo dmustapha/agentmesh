@@ -11,6 +11,7 @@ COPY packages/frontend/package.json ./packages/frontend/
 RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
+COPY tsconfig.base.json ./
 COPY packages/ ./packages/
 RUN pnpm --filter backend build
 
