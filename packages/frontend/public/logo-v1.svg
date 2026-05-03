@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="v1-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00FF88"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
+    <linearGradient id="v1-glow-r" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#00FF88"/>
+    </linearGradient>
+    <filter id="v1-neon">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="v1-glow-soft">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="108" fill="#0A0810"/>
+  <!-- Subtle grid lines in background -->
+  <g opacity="0.06" stroke="#00FF88" stroke-width="0.5">
+    <line x1="0" y1="128" x2="512" y2="128"/>
+    <line x1="0" y1="256" x2="512" y2="256"/>
+    <line x1="0" y1="384" x2="512" y2="384"/>
+    <line x1="128" y1="0" x2="128" y2="512"/>
+    <line x1="256" y1="0" x2="256" y2="512"/>
+    <line x1="384" y1="0" x2="384" y2="512"/>
+  </g>
+  <!-- Shield outline - asymmetric, angular -->
+  <path d="M256 72 L420 152 L420 320 Q420 420 256 456 Q92 420 92 320 L92 152 Z"
+        fill="none" stroke="url(#v1-glow)" stroke-width="3" opacity="0.15" filter="url(#v1-glow-soft)"/>
+  <!-- Inner mesh network - 4 nodes in asymmetric arrangement -->
+  <g filter="url(#v1-neon)">
+    <!-- Connection lines - the mesh -->
+    <!-- Top to left -->
+    <line x1="256" y1="128" x2="152" y2="248" stroke="#00FF88" stroke-width="2.5" opacity="0.7"/>
+    <!-- Top to right -->
+    <line x1="256" y1="128" x2="360" y2="232" stroke="#00FF88" stroke-width="2.5" opacity="0.7"/>
+    <!-- Left to bottom -->
+    <line x1="152" y1="248" x2="232" y2="376" stroke="#0EA5E9" stroke-width="2.5" opacity="0.7"/>
+    <!-- Right to bottom -->
+    <line x1="360" y1="232" x2="232" y2="376" stroke="#0EA5E9" stroke-width="2.5" opacity="0.7"/>
+    <!-- Cross connections -->
+    <line x1="152" y1="248" x2="360" y2="232" stroke="url(#v1-glow)" stroke-width="1.8" opacity="0.4"/>
+    <line x1="256" y1="128" x2="232" y2="376" stroke="url(#v1-glow-r)" stroke-width="1.2" opacity="0.25"/>
+
+    <!-- Scanning line effect -->
+    <line x1="120" y1="290" x2="392" y2="290" stroke="#00FF88" stroke-width="1" opacity="0.12"/>
+
+    <!-- Node 1: Top (Reentrancy Agent) -->
+    <circle cx="256" cy="128" r="24" fill="#0A0810" stroke="#00FF88" stroke-width="3.5"/>
+    <circle cx="256" cy="128" r="9" fill="#00FF88"/>
+    <circle cx="256" cy="128" r="4" fill="#0A0810"/>
+
+    <!-- Node 2: Left (Access Control Agent) -->
+    <circle cx="152" cy="248" r="24" fill="#0A0810" stroke="#00FF88" stroke-width="3.5"/>
+    <circle cx="152" cy="248" r="9" fill="#00FF88"/>
+    <circle cx="152" cy="248" r="4" fill="#0A0810"/>
+
+    <!-- Node 3: Right (Logic Agent) -->
+    <circle cx="360" cy="232" r="24" fill="#0A0810" stroke="#0EA5E9" stroke-width="3.5"/>
+    <circle cx="360" cy="232" r="9" fill="#0EA5E9"/>
+    <circle cx="360" cy="232" r="4" fill="#0A0810"/>
+
+    <!-- Node 4: Bottom (Economic Agent) -->
+    <circle cx="232" cy="376" r="24" fill="#0A0810" stroke="#0EA5E9" stroke-width="3.5"/>
+    <circle cx="232" cy="376" r="9" fill="#0EA5E9"/>
+    <circle cx="232" cy="376" r="4" fill="#0A0810"/>
+  </g>
+  <!-- Pulse rings on top node -->
+  <circle cx="256" cy="128" r="36" fill="none" stroke="#00FF88" stroke-width="1" opacity="0.15"/>
+  <circle cx="256" cy="128" r="48" fill="none" stroke="#00FF88" stroke-width="0.5" opacity="0.08"/>
+</svg>

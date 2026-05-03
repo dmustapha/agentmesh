@@ -1,11 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#00FF88"/>
       <stop offset="100%" stop-color="#0EA5E9"/>
     </linearGradient>
-    <filter id="neon">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-soft">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
@@ -13,26 +20,46 @@
     </filter>
   </defs>
   <!-- Background -->
-  <rect width="512" height="512" rx="96" fill="#0A0810"/>
-  <!-- Outer shield shape -->
-  <path d="M256 56 L432 140 L432 296 Q432 400 256 460 Q80 400 80 296 L80 140 Z" fill="none" stroke="url(#glow)" stroke-width="8" opacity="0.3"/>
-  <!-- Inner mesh: 4 nodes connected -->
-  <g filter="url(#neon)">
-    <!-- Connection lines -->
-    <line x1="256" y1="140" x2="168" y2="260" stroke="#00FF88" stroke-width="3" opacity="0.6"/>
-    <line x1="256" y1="140" x2="344" y2="260" stroke="#00FF88" stroke-width="3" opacity="0.6"/>
-    <line x1="168" y1="260" x2="256" y2="370" stroke="#0EA5E9" stroke-width="3" opacity="0.6"/>
-    <line x1="344" y1="260" x2="256" y2="370" stroke="#0EA5E9" stroke-width="3" opacity="0.6"/>
-    <line x1="168" y1="260" x2="344" y2="260" stroke="#00FF88" stroke-width="3" opacity="0.4"/>
-    <line x1="256" y1="140" x2="256" y2="370" stroke="#0EA5E9" stroke-width="2" opacity="0.3"/>
-    <!-- Agent nodes -->
-    <circle cx="256" cy="140" r="20" fill="#0A0810" stroke="#00FF88" stroke-width="4"/>
-    <circle cx="256" cy="140" r="8" fill="#00FF88"/>
-    <circle cx="168" cy="260" r="20" fill="#0A0810" stroke="#00FF88" stroke-width="4"/>
-    <circle cx="168" cy="260" r="8" fill="#00FF88"/>
-    <circle cx="344" cy="260" r="20" fill="#0A0810" stroke="#0EA5E9" stroke-width="4"/>
-    <circle cx="344" cy="260" r="8" fill="#0EA5E9"/>
-    <circle cx="256" cy="370" r="20" fill="#0A0810" stroke="#0EA5E9" stroke-width="4"/>
-    <circle cx="256" cy="370" r="8" fill="#0EA5E9"/>
+  <rect width="512" height="512" rx="96" fill="#0A0E1A"/>
+  <!-- Shield outline (subtle) -->
+  <path d="M256 60 L430 155 L430 310 Q430 430 256 470 Q82 430 82 310 L82 155 Z"
+        fill="none" stroke="url(#g1)" stroke-width="2.5" opacity="0.15" filter="url(#glow-soft)"/>
+  <!-- Mesh connections -->
+  <g filter="url(#glow)" opacity="0.7">
+    <!-- Top to Left -->
+    <line x1="256" y1="115" x2="120" y2="240" stroke="#00FF88" stroke-width="3"/>
+    <!-- Top to Right -->
+    <line x1="256" y1="115" x2="390" y2="220" stroke="#00FF88" stroke-width="3"/>
+    <!-- Left to Bottom-Left -->
+    <line x1="120" y1="240" x2="170" y2="390" stroke="#00FF88" stroke-width="3"/>
+    <!-- Right to Bottom-Right -->
+    <line x1="390" y1="220" x2="340" y2="380" stroke="#0EA5E9" stroke-width="3"/>
+    <!-- Left to Right (cross) -->
+    <line x1="120" y1="240" x2="390" y2="220" stroke="url(#g1)" stroke-width="2.5"/>
+    <!-- Bottom-Left to Bottom-Right -->
+    <line x1="170" y1="390" x2="340" y2="380" stroke="#0EA5E9" stroke-width="3"/>
+    <!-- Top to Bottom-Left -->
+    <line x1="256" y1="115" x2="170" y2="390" stroke="url(#g1)" stroke-width="2"/>
+    <!-- Top to Bottom-Right -->
+    <line x1="256" y1="115" x2="340" y2="380" stroke="url(#g1)" stroke-width="2"/>
+    <!-- Left to Bottom-Right (cross) -->
+    <line x1="120" y1="240" x2="340" y2="380" stroke="url(#g1)" stroke-width="1.8" opacity="0.5"/>
+    <!-- Right to Bottom-Left (cross) -->
+    <line x1="390" y1="220" x2="170" y2="390" stroke="url(#g1)" stroke-width="1.8" opacity="0.5"/>
   </g>
+  <!-- Node 1: Top (green) -->
+  <circle cx="256" cy="115" r="22" fill="#0A0E1A" stroke="#00FF88" stroke-width="4" filter="url(#glow)"/>
+  <circle cx="256" cy="115" r="9" fill="#00FF88"/>
+  <!-- Node 2: Left (green) -->
+  <circle cx="120" cy="240" r="22" fill="#0A0E1A" stroke="#00FF88" stroke-width="4" filter="url(#glow)"/>
+  <circle cx="120" cy="240" r="9" fill="#00FF88"/>
+  <!-- Node 3: Right (blue) -->
+  <circle cx="390" cy="220" r="22" fill="#0A0E1A" stroke="#0EA5E9" stroke-width="4" filter="url(#glow)"/>
+  <circle cx="390" cy="220" r="9" fill="#0EA5E9"/>
+  <!-- Node 4: Bottom-Left (blue) -->
+  <circle cx="170" cy="390" r="22" fill="#0A0E1A" stroke="#0EA5E9" stroke-width="4" filter="url(#glow)"/>
+  <circle cx="170" cy="390" r="9" fill="#0EA5E9"/>
+  <!-- Node 5: Bottom-Right (green) -->
+  <circle cx="340" cy="380" r="22" fill="#0A0E1A" stroke="#00FF88" stroke-width="4" filter="url(#glow)"/>
+  <circle cx="340" cy="380" r="9" fill="#00FF88"/>
 </svg>

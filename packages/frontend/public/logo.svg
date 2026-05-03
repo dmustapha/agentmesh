@@ -4,21 +4,36 @@
       <stop offset="0%" stop-color="#00FF88"/>
       <stop offset="100%" stop-color="#0EA5E9"/>
     </linearGradient>
+    <filter id="ng">
+      <feGaussianBlur stdDeviation="1" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
-  <!-- Logomark: mini mesh -->
-  <circle cx="14" cy="12" r="4" fill="#0A0810" stroke="#00FF88" stroke-width="2"/>
-  <circle cx="14" cy="12" r="1.5" fill="#00FF88"/>
-  <circle cx="6" cy="24" r="4" fill="#0A0810" stroke="#00FF88" stroke-width="2"/>
-  <circle cx="6" cy="24" r="1.5" fill="#00FF88"/>
-  <circle cx="22" cy="24" r="4" fill="#0A0810" stroke="#0EA5E9" stroke-width="2"/>
-  <circle cx="22" cy="24" r="1.5" fill="#0EA5E9"/>
-  <circle cx="14" cy="34" r="4" fill="#0A0810" stroke="#0EA5E9" stroke-width="2"/>
-  <circle cx="14" cy="34" r="1.5" fill="#0EA5E9"/>
-  <line x1="14" y1="12" x2="6" y2="24" stroke="#00FF88" stroke-width="1.2" opacity="0.6"/>
-  <line x1="14" y1="12" x2="22" y2="24" stroke="#00FF88" stroke-width="1.2" opacity="0.6"/>
-  <line x1="6" y1="24" x2="14" y2="34" stroke="#0EA5E9" stroke-width="1.2" opacity="0.6"/>
-  <line x1="22" y1="24" x2="14" y2="34" stroke="#0EA5E9" stroke-width="1.2" opacity="0.6"/>
-  <line x1="6" y1="24" x2="22" y2="24" stroke="#00FF88" stroke-width="1" opacity="0.4"/>
+  <!-- Mini mesh: 5 nodes like the generated logo -->
+  <g filter="url(#ng)">
+    <!-- Connections -->
+    <line x1="14" y1="6" x2="4" y2="19" stroke="#00FF88" stroke-width="1" opacity="0.6"/>
+    <line x1="14" y1="6" x2="26" y2="17" stroke="#00FF88" stroke-width="1" opacity="0.6"/>
+    <line x1="4" y1="19" x2="9" y2="34" stroke="#00FF88" stroke-width="1" opacity="0.6"/>
+    <line x1="26" y1="17" x2="22" y2="33" stroke="#0EA5E9" stroke-width="1" opacity="0.6"/>
+    <line x1="9" y1="34" x2="22" y2="33" stroke="#0EA5E9" stroke-width="1" opacity="0.6"/>
+    <line x1="4" y1="19" x2="26" y2="17" stroke="url(#lg)" stroke-width="0.8" opacity="0.4"/>
+    <line x1="14" y1="6" x2="9" y2="34" stroke="url(#lg)" stroke-width="0.8" opacity="0.3"/>
+    <line x1="14" y1="6" x2="22" y2="33" stroke="url(#lg)" stroke-width="0.8" opacity="0.3"/>
+    <line x1="4" y1="19" x2="22" y2="33" stroke="url(#lg)" stroke-width="0.7" opacity="0.25"/>
+    <line x1="26" y1="17" x2="9" y2="34" stroke="url(#lg)" stroke-width="0.7" opacity="0.25"/>
+    <!-- Nodes -->
+    <circle cx="14" cy="6" r="3" fill="#0A0810" stroke="#00FF88" stroke-width="1.5"/>
+    <circle cx="14" cy="6" r="1.2" fill="#00FF88"/>
+    <circle cx="4" cy="19" r="3" fill="#0A0810" stroke="#00FF88" stroke-width="1.5"/>
+    <circle cx="4" cy="19" r="1.2" fill="#00FF88"/>
+    <circle cx="26" cy="17" r="3" fill="#0A0810" stroke="#0EA5E9" stroke-width="1.5"/>
+    <circle cx="26" cy="17" r="1.2" fill="#0EA5E9"/>
+    <circle cx="9" cy="34" r="3" fill="#0A0810" stroke="#0EA5E9" stroke-width="1.5"/>
+    <circle cx="9" cy="34" r="1.2" fill="#0EA5E9"/>
+    <circle cx="22" cy="33" r="3" fill="#0A0810" stroke="#00FF88" stroke-width="1.5"/>
+    <circle cx="22" cy="33" r="1.2" fill="#00FF88"/>
+  </g>
   <!-- Wordmark -->
   <text x="36" y="28" font-family="Inter, -apple-system, sans-serif" font-size="22" font-weight="700" fill="white" letter-spacing="-0.5">Agent</text>
   <text x="108" y="28" font-family="Inter, -apple-system, sans-serif" font-size="22" font-weight="700" fill="url(#lg)" letter-spacing="-0.5">Mesh</text>
