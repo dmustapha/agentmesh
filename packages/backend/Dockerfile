@@ -13,7 +13,7 @@ RUN pnpm install --frozen-lockfile
 FROM deps AS build
 COPY tsconfig.base.json ./
 COPY packages/ ./packages/
-RUN pnpm --filter backend build
+RUN pnpm --filter shared build && pnpm --filter backend build
 
 FROM node:20-alpine AS runtime
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -25,7 +25,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/backend/node_modules ./packages/backend/node_modules
 COPY --from=build /app/packages/backend/dist ./packages/backend/dist
+COPY --from=build /app/packages/shared/dist ./packages/shared/dist
 COPY packages/backend/package.json ./packages/backend/
+COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 EXPOSE 3001
