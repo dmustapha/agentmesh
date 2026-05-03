@@ -161,18 +161,26 @@ export class AgentManager {
     }
 
     // Give agents time to receive messages
-    await new Promise((r) => setTimeout(r, 3000));
+    await new Promise((r) => setTimeout(r, 1000));
 
-    // Phase 3: Agents vote on each other's findings
-    const allVotes: Vote[] = [];
+    // Phase 3: Agents vote on each other's findings (parallelized)
+    const votePromises: Promise<{ vote: Vote; specialty: AgentSpecialty }>[] = [];
     for (const agent of allAgents) {
       const otherFindings = flatFindings.filter((f) => f.agentId !== agent.node.id);
       for (const finding of otherFindings) {
-        const vote = await agent.evaluateFinding(finding);
-        allVotes.push(vote);
+        votePromises.push(
+          agent.evaluateFinding(finding).then((vote) => ({ vote, specialty: agent.node.specialty })),
+        );
+      }
+    }
+    const voteResults = await Promise.allSettled(votePromises);
+    const allVotes: Vote[] = [];
+    for (const result of voteResults) {
+      if (result.status === 'fulfilled') {
+        allVotes.push(result.value.vote);
         this.broadcaster?.broadcast({
           type: 'audit:vote',
-          data: { vote, agentSpecialty: agent.node.specialty },
+          data: { vote: result.value.vote, agentSpecialty: result.value.specialty },
           timestamp: Date.now(),
         });
       }
