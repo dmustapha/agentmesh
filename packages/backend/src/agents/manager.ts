@@ -200,10 +200,13 @@ export class AgentManager {
     };
 
     try {
-      const { rootHash } = await this.storage.uploadReport(report);
+      const storageTimeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Storage upload timeout (15s)')), 15_000),
+      );
+      const { rootHash } = await Promise.race([this.storage.uploadReport(report), storageTimeout]);
       report.consensus.storageRootHash = rootHash;
     } catch (error) {
-      console.warn('[Manager] 0G Storage upload failed:', error);
+      console.warn('[Manager] 0G Storage upload failed:', (error as Error).message);
       report.consensus.storageRootHash = 'STORAGE_UNAVAILABLE';
     }
 
@@ -213,16 +216,22 @@ export class AgentManager {
       const highs = consensusResult.findings.filter((f) => f.finalSeverity === 'HIGH').length;
       // Use the audited contract address, or the AgentRegistry address as a meaningful fallback
       const attestAddress = request.contractAddress || process.env.AGENT_REGISTRY_ADDRESS || '0x0000000000000000000000000000000000000001';
-      const txHash = await this.chain.attest(
-        attestAddress,
-        report.consensus.reportHash,
-        report.consensus.storageRootHash,
-        criticals,
-        highs,
+      const attestTimeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Chain attestation timeout (20s)')), 20_000),
       );
+      const txHash = await Promise.race([
+        this.chain.attest(
+          attestAddress,
+          report.consensus.reportHash,
+          report.consensus.storageRootHash,
+          criticals,
+          highs,
+        ),
+        attestTimeout,
+      ]);
       report.consensus.attestationTxHash = txHash;
     } catch (error) {
-      console.warn('[Manager] 0G Chain attestation failed:', error);
+      console.warn('[Manager] 0G Chain attestation failed:', (error as Error).message);
       report.consensus.attestationTxHash = 'ATTESTATION_UNAVAILABLE';
     }
 

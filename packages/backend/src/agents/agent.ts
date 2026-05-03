@@ -344,7 +344,7 @@ export class AuditAgent {
 
     try {
       const llmTimeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('LLM vote timeout')), 5_000),
+        setTimeout(() => reject(new Error('LLM vote timeout')), 25_000),
       );
       const response = await Promise.race([
         this.compute.chat(

@@ -47,9 +47,8 @@ async function main(): Promise<void> {
   // Initialize services with graceful degradation
   const mesh = new AXLMesh(axlBinary, keysDir);
 
-  let compute: ZGComputeClient;
+  const compute = new ZGComputeClient(privateKey || '0x0000000000000000000000000000000000000000000000000000000000000001');
   try {
-    compute = new ZGComputeClient(privateKey || '0x0000000000000000000000000000000000000000000000000000000000000001');
     if (privateKey) {
       await compute.initialize();
       console.log('[Init] 0G Compute client ready');
@@ -57,8 +56,8 @@ async function main(): Promise<void> {
       console.warn('[Init] 0G Compute client created (demo mode — inference will use static scan only)');
     }
   } catch (error) {
-    console.warn('[Init] 0G Compute init failed (non-fatal):', error);
-    compute = new ZGComputeClient('0x0000000000000000000000000000000000000000000000000000000000000001');
+    // Don't replace compute — lazy init in chat() will retry on first use
+    console.warn('[Init] 0G Compute init failed (will retry on first audit):', (error as Error).message);
   }
 
   const storage = new ZGStorageClient(privateKey || '0x0000000000000000000000000000000000000000000000000000000000000001');

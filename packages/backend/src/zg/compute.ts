@@ -9,17 +9,30 @@ export class ZGComputeClient {
   private wallet: ethers.Wallet;
   private providerAddress: string = '';
   private ready: boolean = false;
+  private initAttempts: number = 0;
+  private isDummy: boolean = false;
 
   constructor(privateKey: string) {
     const provider = new ethers.JsonRpcProvider(ZG_COMPUTE_RPC);
     this.wallet = new ethers.Wallet(privateKey, provider);
+    // Detect dummy key (used when PRIVATE_KEY is not set)
+    this.isDummy = privateKey === '0x0000000000000000000000000000000000000000000000000000000000000001';
   }
 
   async initialize(): Promise<void> {
+    if (this.isDummy) {
+      console.warn('[0G Compute] Dummy key — skipping initialization');
+      return;
+    }
+
+    this.initAttempts++;
+    console.log(`[0G Compute] Initializing (attempt ${this.initAttempts})...`);
+
     this.broker = await createZGComputeNetworkBroker(this.wallet);
 
     // List available services to find a provider
     const services = await this.broker.inference.listService();
+    console.log(`[0G Compute] Found ${services.length} services`);
     const chatService = services.find(
       (s) => String(s.model ?? '').includes('qwen') || String(s.model ?? '').includes('deepseek'),
     );
@@ -41,10 +54,22 @@ export class ZGComputeClient {
     return this.ready && this.broker !== null;
   }
 
-  async chat(systemPrompt: string, userMessage: string, retries = 2): Promise<string> {
-    if (!this.broker || !this.ready) {
-      throw new Error('0G Compute broker not initialized or not ready.');
+  // Lazy init: if not ready on first chat call, try to initialize once
+  private async ensureReady(): Promise<void> {
+    if (this.ready && this.broker) return;
+    if (this.isDummy) throw new Error('0G Compute running with dummy key (no PRIVATE_KEY set)');
+    if (this.initAttempts >= 3) throw new Error('0G Compute init failed after 3 attempts');
+
+    console.log('[0G Compute] Not ready, attempting lazy initialization...');
+    await this.initialize();
+
+    if (!this.ready || !this.broker) {
+      throw new Error('0G Compute broker not initialized after retry');
     }
+  }
+
+  async chat(systemPrompt: string, userMessage: string, retries = 2): Promise<string> {
+    await this.ensureReady();
 
     let lastError: Error | null = null;
 
