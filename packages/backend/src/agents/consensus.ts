@@ -29,15 +29,21 @@ export class ConsensusEngine {
 
     for (const [findingId, finding] of findingMap) {
       const findingVotes = votesByFinding.get(findingId) || [];
+      // Separate real votes from abstentions (confidence: 0 = inference failed)
+      const realVotes = findingVotes.filter((v) => v.confidence > 0);
+      const abstainCount = findingVotes.length - realVotes.length;
+
       // Include the original agent's implicit "agree" vote
-      const totalVoters = findingVotes.length + 1;
-      const agreeCount = findingVotes.filter((v) => v.agree).length + 1;
+      const totalVoters = realVotes.length + 1;
+      const agreeCount = realVotes.filter((v) => v.agree).length + 1;
       const agreementRatio = agreeCount / totalVoters;
 
-      // Include if agreement threshold met OR single agent with very high confidence
+      // Include if: agreement threshold met, high-confidence critical, OR all other agents abstained
+      const allAbstained = abstainCount === findingVotes.length && findingVotes.length > 0;
       const includeFinding =
         agreementRatio >= CONSENSUS_AGREEMENT_THRESHOLD ||
-        (finding.confidence >= CONSENSUS_CRITICAL_CONFIDENCE && finding.severity === 'CRITICAL');
+        (finding.confidence >= CONSENSUS_CRITICAL_CONFIDENCE && finding.severity === 'CRITICAL') ||
+        allAbstained;
 
       if (includeFinding) {
         // Include severity from ALL votes (not just agreeing) to catch critical assessments
@@ -47,9 +53,10 @@ export class ConsensusEngine {
         ];
         const finalSeverity = this.maxSeverity(severities as Severity[]);
 
-        const avgConfidence =
-          findingVotes.reduce((sum, v) => sum + (v.agree ? v.confidence : 0), finding.confidence) /
-          agreeCount;
+        const avgConfidence = allAbstained
+          ? finding.confidence
+          : realVotes.reduce((sum, v) => sum + (v.agree ? v.confidence : 0), finding.confidence) /
+            agreeCount;
 
         consensusFindings.push({
           finding,

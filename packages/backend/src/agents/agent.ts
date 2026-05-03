@@ -62,8 +62,24 @@ export class AuditAgent {
     this.setStatus('analyzing');
 
     // Phase 1: Static pattern scan -- guaranteed findings, no LLM dependency
+    this.onMessage?.({
+      type: 'analysis',
+      payload: { phase: 'static-scan', specialty: this.node.specialty },
+      fromAgent: this.node.id,
+      toAgent: 'broadcast',
+      timestamp: Date.now(),
+    });
     const staticFindings = this.staticScan(sourceCode);
     for (const f of staticFindings) this.onFinding?.(f);
+    if (staticFindings.length > 0) {
+      this.onMessage?.({
+        type: 'result',
+        payload: { phase: 'static-scan', specialty: this.node.specialty, count: staticFindings.length },
+        fromAgent: this.node.id,
+        toAgent: 'broadcast',
+        timestamp: Date.now(),
+      });
+    }
 
     // Phase 2: LLM deep analysis -- contextual reasoning, may fail gracefully
     try {
@@ -110,6 +126,13 @@ export class AuditAgent {
       return [...staticFindings, ...llmFindings];
     } catch (error) {
       console.error(`[Agent:${this.node.specialty}] LLM analysis failed, returning static findings:`, error);
+      this.onMessage?.({
+        type: 'fallback',
+        payload: { phase: 'llm-analysis', specialty: this.node.specialty, reason: 'LLM unavailable, using static analysis' },
+        fromAgent: this.node.id,
+        toAgent: 'broadcast',
+        timestamp: Date.now(),
+      });
       // Static findings are still valid even when LLM fails
       return staticFindings;
     }
@@ -341,6 +364,13 @@ export class AuditAgent {
         reasoning: String(parsed.reasoning || ''),
       };
     } catch {
+      this.onMessage?.({
+        type: 'vote-abstain',
+        payload: { findingId: finding.id, specialty: this.node.specialty, reason: 'LLM unavailable' },
+        fromAgent: this.node.id,
+        toAgent: finding.agentId,
+        timestamp: Date.now(),
+      });
       return {
         agentId: this.node.id,
         findingId: finding.id,
