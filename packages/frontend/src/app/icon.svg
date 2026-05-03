@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00FF88"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
+    <filter id="neon">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0A0810"/>
+  <!-- Outer shield shape -->
+  <path d="M256 56 L432 140 L432 296 Q432 400 256 460 Q80 400 80 296 L80 140 Z" fill="none" stroke="url(#glow)" stroke-width="8" opacity="0.3"/>
+  <!-- Inner mesh: 4 nodes connected -->
+  <g filter="url(#neon)">
+    <!-- Connection lines -->
+    <line x1="256" y1="140" x2="168" y2="260" stroke="#00FF88" stroke-width="3" opacity="0.6"/>
+    <line x1="256" y1="140" x2="344" y2="260" stroke="#00FF88" stroke-width="3" opacity="0.6"/>
+    <line x1="168" y1="260" x2="256" y2="370" stroke="#0EA5E9" stroke-width="3" opacity="0.6"/>
+    <line x1="344" y1="260" x2="256" y2="370" stroke="#0EA5E9" stroke-width="3" opacity="0.6"/>
+    <line x1="168" y1="260" x2="344" y2="260" stroke="#00FF88" stroke-width="3" opacity="0.4"/>
+    <line x1="256" y1="140" x2="256" y2="370" stroke="#0EA5E9" stroke-width="2" opacity="0.3"/>
+    <!-- Agent nodes -->
+    <circle cx="256" cy="140" r="20" fill="#0A0810" stroke="#00FF88" stroke-width="4"/>
+    <circle cx="256" cy="140" r="8" fill="#00FF88"/>
+    <circle cx="168" cy="260" r="20" fill="#0A0810" stroke="#00FF88" stroke-width="4"/>
+    <circle cx="168" cy="260" r="8" fill="#00FF88"/>
+    <circle cx="344" cy="260" r="20" fill="#0A0810" stroke="#0EA5E9" stroke-width="4"/>
+    <circle cx="344" cy="260" r="8" fill="#0EA5E9"/>
+    <circle cx="256" cy="370" r="20" fill="#0A0810" stroke="#0EA5E9" stroke-width="4"/>
+    <circle cx="256" cy="370" r="8" fill="#0EA5E9"/>
+  </g>
+</svg>
