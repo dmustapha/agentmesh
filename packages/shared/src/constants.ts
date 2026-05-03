@@ -43,9 +43,9 @@ export const ENS_REGISTRY = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
 export const ENS_PUBLIC_RESOLVER = '0xE99638b40E4Fff0129D56f03b55b6bbC4BBE49b5';
 export const ENS_NAME_WRAPPER = '0x0635513f179D50A207757E05759CbD106d7dFcE8';
 
-// Contract addresses — defaults only, overridden by backend env vars at runtime
-export const AGENT_REGISTRY_ADDRESS = '';
-export const AUDIT_ATTESTATION_ADDRESS = '';
+// Contract addresses — deployed to 0G Chain Testnet (chain ID 16602)
+export const AGENT_REGISTRY_ADDRESS = '0xd07B4222D25feB1Db2d87E512Ed0Cbf88c105F3A';
+export const AUDIT_ATTESTATION_ADDRESS = '0x544097E0446a42eD6A298cDe34227Da559f25011';
 
 // Backend
 export const BACKEND_PORT = 3001;

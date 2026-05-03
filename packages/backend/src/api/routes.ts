@@ -2,7 +2,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { AgentManager } from '../agents/manager';
-import { AuditRequest } from '@agentmesh/shared';
+import { AuditRequest, AGENT_REGISTRY_ADDRESS, AUDIT_ATTESTATION_ADDRESS } from '@agentmesh/shared';
 import { ETHERSCAN_API } from '@agentmesh/shared';
 import { randomUUID } from 'crypto';
 
@@ -181,8 +181,8 @@ export function createRoutes(manager: AgentManager): Router {
         })),
         topology,
         contracts: {
-          agentRegistry: process.env.AGENT_REGISTRY_ADDRESS || 'NOT_DEPLOYED',
-          auditAttestation: process.env.AUDIT_ATTESTATION_ADDRESS || 'NOT_DEPLOYED',
+          agentRegistry: process.env.AGENT_REGISTRY_ADDRESS || AGENT_REGISTRY_ADDRESS,
+          auditAttestation: process.env.AUDIT_ATTESTATION_ADDRESS || AUDIT_ATTESTATION_ADDRESS,
           explorerBase: 'https://chainscan-galileo.0g.ai',
         },
         ens: {
