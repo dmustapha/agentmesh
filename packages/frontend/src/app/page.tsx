@@ -22,9 +22,11 @@ const TABS = [
 type TabKey = typeof TABS[number]['key'];
 
 export default function Home() {
-  const wsUrl = typeof window !== 'undefined'
-    ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}:3001/ws`
-    : 'ws://localhost:3001/ws';
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || (
+    typeof window !== 'undefined'
+      ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}:3001/ws`
+      : 'ws://localhost:3001/ws'
+  );
   const { events, connected } = useWebSocket(wsUrl);
   const { agents, topology } = useAgents(events);
   const { audit, report, startAudit, messages, findings, error: auditError } = useAudit(events);

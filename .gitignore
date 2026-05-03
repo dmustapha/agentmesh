@@ -85,6 +85,7 @@ axl-repo/
 # AXL Go source — Gensyn's binary, not ours to maintain
 axl/*
 !axl/node-config.json
+!axl/node-linux-amd64
 
 # Root-level working docs (committed versions in docs/spec/)
 /ARCHITECTURE.md
