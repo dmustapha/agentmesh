@@ -342,6 +342,26 @@ export class AuditAgent {
   async evaluateFinding(finding: Finding): Promise<Vote> {
     this.setStatus('voting');
 
+    // Fast-path: skip LLM entirely when compute is not available.
+    // Without this, each vote waits 2 × 25s timeout → entire voting phase blocks for minutes.
+    if (!this.compute.isReady()) {
+      this.onMessage?.({
+        type: 'vote-abstain',
+        payload: { findingId: finding.id, specialty: this.node.specialty, reason: 'LLM unavailable' },
+        fromAgent: this.node.id,
+        toAgent: finding.agentId,
+        timestamp: Date.now(),
+      });
+      return {
+        agentId: this.node.id,
+        findingId: finding.id,
+        agree: false,
+        severity: finding.severity,
+        confidence: 0,
+        reasoning: 'Inference not available — abstaining to avoid blocking consensus',
+      };
+    }
+
     const prompt = `Finding from ${finding.agentSpecialty} agent:\nType: ${finding.type}\nSeverity: ${finding.severity}\nTitle: ${finding.title}\nDescription: ${finding.description}\nEvidence: ${finding.evidence}`;
 
     // Retry once on failure (0G Compute may reject concurrent requests)
