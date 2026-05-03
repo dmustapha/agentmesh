@@ -78,8 +78,8 @@ export class ZGComputeClient {
       const timeoutId = setTimeout(() => controller.abort(), 20_000);
 
       try {
-        const { endpoint, model } = await this.broker.inference.getServiceMetadata(this.providerAddress);
-        const headers = await this.broker.inference.getRequestHeaders(this.providerAddress);
+        const { endpoint, model } = await this.broker!.inference.getServiceMetadata(this.providerAddress);
+        const headers = await this.broker!.inference.getRequestHeaders(this.providerAddress);
 
         const response = await fetch(`${endpoint}/chat/completions`, {
           method: 'POST',

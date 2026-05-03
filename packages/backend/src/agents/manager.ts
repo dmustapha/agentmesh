@@ -163,26 +163,34 @@ export class AgentManager {
     // Give agents time to receive messages
     await new Promise((r) => setTimeout(r, 1000));
 
-    // Phase 3: Agents vote on each other's findings (parallelized)
-    const votePromises: Promise<{ vote: Vote; specialty: AgentSpecialty }>[] = [];
-    for (const agent of allAgents) {
-      const otherFindings = flatFindings.filter((f) => f.agentId !== agent.node.id);
-      for (const finding of otherFindings) {
-        votePromises.push(
-          agent.evaluateFinding(finding).then((vote) => ({ vote, specialty: agent.node.specialty })),
-        );
-      }
-    }
-    const voteResults = await Promise.allSettled(votePromises);
+    // Phase 3: Agents vote on each other's findings
+    // Each agent votes sequentially on findings (avoids overwhelming 0G Compute),
+    // but all agents run in parallel (max 4 concurrent LLM calls).
     const allVotes: Vote[] = [];
-    for (const result of voteResults) {
+    const agentVotePromises = allAgents.map(async (agent) => {
+      const otherFindings = flatFindings.filter((f) => f.agentId !== agent.node.id);
+      const votes: { vote: Vote; specialty: AgentSpecialty }[] = [];
+      for (const finding of otherFindings) {
+        try {
+          const vote = await agent.evaluateFinding(finding);
+          votes.push({ vote, specialty: agent.node.specialty });
+        } catch {
+          // Individual vote failure is non-fatal
+        }
+      }
+      return votes;
+    });
+    const agentVoteResults = await Promise.allSettled(agentVotePromises);
+    for (const result of agentVoteResults) {
       if (result.status === 'fulfilled') {
-        allVotes.push(result.value.vote);
-        this.broadcaster?.broadcast({
-          type: 'audit:vote',
-          data: { vote: result.value.vote, agentSpecialty: result.value.specialty },
-          timestamp: Date.now(),
-        });
+        for (const { vote, specialty } of result.value) {
+          allVotes.push(vote);
+          this.broadcaster?.broadcast({
+            type: 'audit:vote',
+            data: { vote, agentSpecialty: specialty },
+            timestamp: Date.now(),
+          });
+        }
       }
     }
 

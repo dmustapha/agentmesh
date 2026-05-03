@@ -342,44 +342,53 @@ export class AuditAgent {
   async evaluateFinding(finding: Finding): Promise<Vote> {
     this.setStatus('voting');
 
-    try {
-      const llmTimeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('LLM vote timeout')), 25_000),
-      );
-      const response = await Promise.race([
-        this.compute.chat(
-          DEBATE_PROMPT,
-          `Finding from ${finding.agentSpecialty} agent:\nType: ${finding.type}\nSeverity: ${finding.severity}\nTitle: ${finding.title}\nDescription: ${finding.description}\nEvidence: ${finding.evidence}`,
-        ),
-        llmTimeout,
-      ]);
+    const prompt = `Finding from ${finding.agentSpecialty} agent:\nType: ${finding.type}\nSeverity: ${finding.severity}\nTitle: ${finding.title}\nDescription: ${finding.description}\nEvidence: ${finding.evidence}`;
 
-      const parsed = JSON.parse(response);
-      return {
-        agentId: this.node.id,
-        findingId: finding.id,
-        agree: Boolean(parsed.agree),
-        severity: parsed.severity || finding.severity,
-        confidence: Number(parsed.confidence) || 0.5,
-        reasoning: String(parsed.reasoning || ''),
-      };
-    } catch {
-      this.onMessage?.({
-        type: 'vote-abstain',
-        payload: { findingId: finding.id, specialty: this.node.specialty, reason: 'LLM unavailable' },
-        fromAgent: this.node.id,
-        toAgent: finding.agentId,
-        timestamp: Date.now(),
-      });
-      return {
-        agentId: this.node.id,
-        findingId: finding.id,
-        agree: false, // Abstain on inference failure — never inflate consensus
-        severity: finding.severity,
-        confidence: 0,
-        reasoning: 'Inference failed — abstaining to avoid false consensus inflation',
-      };
+    // Retry once on failure (0G Compute may reject concurrent requests)
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const llmTimeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('LLM vote timeout')), 25_000),
+        );
+        const response = await Promise.race([
+          this.compute.chat(DEBATE_PROMPT, prompt),
+          llmTimeout,
+        ]);
+
+        const parsed = JSON.parse(response);
+        return {
+          agentId: this.node.id,
+          findingId: finding.id,
+          agree: Boolean(parsed.agree),
+          severity: parsed.severity || finding.severity,
+          confidence: Number(parsed.confidence) || 0.5,
+          reasoning: String(parsed.reasoning || ''),
+        };
+      } catch {
+        if (attempt === 0) {
+          // Brief pause before retry
+          await new Promise((r) => setTimeout(r, 2000));
+          continue;
+        }
+      }
     }
+
+    // Both attempts failed — abstain
+    this.onMessage?.({
+      type: 'vote-abstain',
+      payload: { findingId: finding.id, specialty: this.node.specialty, reason: 'LLM unavailable' },
+      fromAgent: this.node.id,
+      toAgent: finding.agentId,
+      timestamp: Date.now(),
+    });
+    return {
+      agentId: this.node.id,
+      findingId: finding.id,
+      agree: false,
+      severity: finding.severity,
+      confidence: 0,
+      reasoning: 'Inference failed — abstaining to avoid false consensus inflation',
+    };
   }
 
   async pollMessages(): Promise<AXLMessage[]> {
